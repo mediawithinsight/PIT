@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Intelligence Tracker (PIT)</title>
+<style>
+  :root{
+    --bg:#f1f5f9;--panel:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+    --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+    --teal-bg:#f0fdfa;--teal:#0d9488;--teal-text:#0f766e;
+    --ora-bg:#fff7ed;--ora:#ea580c;--ora-text:#c2410c;
+    --vio-bg:#f5f3ff;--vio:#7c3aed;--vio-text:#5b21b6;
+    --sky-bg:#f0f9ff;--sky:#0369a1;--sky-text:#075985;
+    --rose-bg:#fff1f2;--rose:#f43f5e;--rose-text:#be123c;
+    --slt-bg:#f8fafc;--slt:#475569;--slt-text:#334155;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .hdr{background:#000;color:#fff;padding:22px 28px 0;position:relative;overflow:hidden;}
+  .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;z-index:1;}
+  .hdr-title-block{display:flex;flex-direction:column;gap:2px;}
+  .hdr-eyebrow{font-size:10px;font-weight:700;letter-spacing:.25em;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;}
+  .hdr-main{font-size:36px;line-height:1.05;font-weight:300;letter-spacing:-.02em;color:#fff;}
+  .hdr-bold{font-weight:800;color:#fff;display:block;}
+  .hdr-sub{font-size:11.5px;color:#64748b;margin-top:6px;letter-spacing:.02em;}
+  .tabs{position:relative;z-index:1;display:flex;gap:2px;align-items:flex-end;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tab{padding:8px 20px;font-size:12.5px;font-weight:600;color:#94a3b8;cursor:pointer;border-radius:6px 6px 0 0;background:transparent;border:none;letter-spacing:.02em;transition:all .15s;white-space:nowrap;}
+  .tab:hover{color:#e2e8f0;background:rgba(255,255,255,.06);}
+  .tab.active{background:#f1f5f9;color:#000;}
+  .tab-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:5px;vertical-align:middle;font-weight:700;}
+  .tab-badge.rdu{background:#0d9488;color:#fff;}
+  .tab-badge.crcl{background:#7c3aed;color:#fff;}
+  .tab-badge.nlr{background:#0369a1;color:#fff;}
+  .tab-badge.rak{background:#b91c1c;color:#fff;}
+  .tab-badge.andc{background:#b45309;color:#fff;}
+  .tab-badge.cgnt{background:#065f46;color:#fff;}
+  .tab-badge.kfr{background:#1e40af;color:#fff;}
+  .tab-badge.big{background:#6b21a8;color:#fff;}
+  .tab-badge.ogw{background:#9f1239;color:#fff;}
+  .action-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .run-btn{display:inline-flex;align-items:center;gap:7px;background:#000;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12.5px;font-weight:600;cursor:pointer;letter-spacing:.01em;transition:background .15s;}
+  .run-btn:hover{background:#222;}
+  .last-updated{font-size:11.5px;color:var(--text3);}
+  #statusMsg{font-size:12px;padding:8px 12px;border-radius:6px;background:var(--teal-bg);color:var(--teal-text);display:none;}
+  .content{padding:20px 28px;max-width:1080px;}
+  .pane{display:none;}.pane.active{display:block;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+  .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:14px;}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--text2);margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .lg-num{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;font-size:8.5px;font-weight:700;}
+  .g-project{margin-bottom:2px;}
+  .g-row{display:flex;gap:0;}
+  .g-label{width:144px;flex-shrink:0;}
+  .g-label .proj{font-size:13px;font-weight:700;color:var(--text);}
+  .g-label .pticker{font-size:9.5px;color:var(--text3);}
+  .g-label .row-tag{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block;margin-top:3px;letter-spacing:.02em;}
+  .g-label .row-tag.cat{background:var(--ora-bg);color:var(--ora-text);}
+  .g-label .row-tag.res{background:var(--sky-bg);color:var(--sky-text);}
+  .g-chart{flex:1;min-width:0;}
+  .g-axis{position:relative;height:18px;border-bottom:1px solid var(--border);}
+  .g-axis span{position:absolute;bottom:2px;font-size:9.5px;color:var(--text3);transform:translateX(-50%);white-space:nowrap;}
+  .g-axis .today-lbl{color:var(--text);font-weight:700;}
+  .g-track{position:relative;height:48px;overflow:visible;}
+  .g-track.cat-track{border-top:1px solid #f1f5f9;}
+  .g-track.res-track{border-top:1px dashed var(--border);}
+  .g-today-line{position:absolute;top:0;bottom:0;width:1.5px;background:var(--border2);z-index:2;}
+  .g-future-bg{position:absolute;top:0;bottom:0;background:#f8fafc;}
+  .g-gridline{position:absolute;top:0;bottom:0;width:1px;background:var(--border);z-index:0;}
+  .g-bar{position:absolute;top:26px;height:10px;border-radius:5px;background:var(--ora-bg);border:1px solid #fdba74;}
+  .g-bar.quiet{opacity:.35;}
+  .g-bar-future{position:absolute;top:26px;height:10px;border-radius:5px;background:repeating-linear-gradient(90deg,var(--ora-bg) 0,var(--ora-bg) 4px,#fff 4px,#fff 8px);border:1px dashed var(--ora);}
+  .g-num{position:absolute;top:5px;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;transform:translateX(-50%);border:1.5px solid;z-index:4;cursor:default;}
+  .g-num.past{background:var(--teal-bg);color:var(--teal-text);border-color:var(--teal);}
+  .g-num.future{background:var(--ora-bg);color:var(--ora-text);border-color:var(--ora);border-style:dashed;}
+  .g-num.milestone{background:var(--vio-bg);color:var(--vio-text);border-color:var(--vio);}
+  .g-num.media{background:var(--slt-bg);color:var(--slt-text);border-color:var(--slt);}
+  .g-num.result{background:var(--sky-bg);color:var(--sky-text);border-color:var(--sky);}
+  .g-dlabel{position:absolute;top:38px;font-size:8.5px;color:var(--text2);white-space:nowrap;transform:translateX(-50%);z-index:3;}
+  .g-meta{font-size:12px;color:var(--text2);padding:8px 0 18px;margin-left:144px;}
+  .g-meta .sl{margin-bottom:6px;}
+  .g-meta .sec{font-weight:700;color:var(--text);font-size:12px;margin:8px 0 3px;}
+  .g-meta ul{margin:0;padding:0;list-style:none;}
+  .g-meta ul li{display:flex;gap:7px;align-items:baseline;line-height:1.9;}
+  .i-num{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:50%;font-size:8px;font-weight:700;flex-shrink:0;margin-top:2px;}
+  .i-num.past{background:var(--teal-bg);color:var(--teal-text);border:1px solid var(--teal);}
+  .i-num.future{background:var(--ora-bg);color:var(--ora-text);border:1px dashed var(--ora);}
+  .i-num.milestone{background:var(--vio-bg);color:var(--vio-text);border:1px solid var(--vio);}
+  .i-num.media{background:var(--slt-bg);color:var(--slt-text);border:1px solid var(--slt);}
+  .i-num.result{background:var(--sky-bg);color:var(--sky-text);border:1px solid var(--sky);}
+  .i-text{flex:1;}
+  .i-date{font-weight:600;color:var(--text);margin-right:3px;}
+  .tbd{color:var(--ora);font-style:italic;font-weight:600;}
+  .overdue-txt{color:var(--rose);font-weight:700;}
+  hr.div{border:none;border-top:1px solid var(--border);margin:0 0 20px;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:7px 8px;border-bottom:1px solid #f8fafc;vertical-align:top;}
+  tr:hover td{background:#f8fafc;}
+  .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;}
+  .badge.speculative{background:var(--ora-bg);color:var(--ora-text);}
+  .badge.confirmed{background:var(--teal-bg);color:var(--teal-text);}
+  .badge.mixed{background:var(--slt-bg);color:var(--slt-text);}
+  a.lnk{color:var(--sky);text-decoration:none;font-size:11px;}
+  a.lnk:hover{text-decoration:underline;}
+  .port{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;}
+  .pcard{border:1px solid var(--border);border-radius:8px;padding:12px;background:#fafcff;}
+  .pcard .pname{font-size:13px;font-weight:700;margin-bottom:3px;color:var(--text);}
+  .pcard .ploc{font-size:11px;color:var(--text2);margin-bottom:7px;line-height:1.5;}
+  .pcard .pstage{font-size:11px;color:var(--text2);line-height:1.5;}
+  .ptag{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:5px;}
+  .ptag.confirmed{background:var(--teal-bg);color:var(--teal-text);}
+  .ptag.speculative{background:var(--ora-bg);color:var(--ora-text);}
+  .footnote{font-size:11px;color:var(--text3);text-align:center;margin-top:6px;}
+  .ticker-hbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;flex-wrap:wrap;gap:8px;}
+  .ticker-hbar-left{display:flex;align-items:center;gap:10px;}
+  .ticker-sym{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.01em;}
+  .ticker-name{font-size:14px;color:var(--text2);font-weight:400;}
+  .ticker-hbar-right{display:flex;align-items:center;}
+  .pres-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--sky);text-decoration:none;padding:5px 12px;border:1px solid var(--sky);border-radius:6px;transition:all .15s;}
+  .pres-link:hover{background:var(--sky-bg);}
+  @media(max-width:640px){
+    .hdr{padding:16px 16px 0;}
+    .hdr-main{font-size:26px;}
+    .hdr-sub{font-size:10.5px;}
+    .tab{padding:7px 14px;font-size:11.5px;}
+    .action-bar{padding:10px 16px;}
+    .content{padding:14px 12px;}
+    .card{padding:14px;}
+    .legend{gap:9px;font-size:10px;}
+    .g-row{flex-direction:column;gap:2px;}
+    .g-label{width:100%;flex-shrink:1;padding-top:0!important;margin-top:10px;}
+    .g-label .proj{font-size:12.5px;}
+    .g-chart{width:100%;}
+    .g-meta{margin-left:0;padding:6px 0 16px;}
+    .g-axis{height:16px;}
+    .g-axis span{font-size:8.5px;}
+    .g-axis .tick-mid{display:none;}
+    .g-track{height:42px;}
+    .g-num{width:15px;height:15px;font-size:7.5px;}
+    .g-dlabel{font-size:7.5px;top:34px;}
+    table{font-size:10.5px;}
+    th{font-size:9px;padding:4px 5px;}
+    td{padding:5px 5px;}
+    .port{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-title-block">
+      <div class="hdr-eyebrow">PORTFOLIO</div>
+      <div class="hdr-main">Intelligence<br><span class="hdr-bold">Tracker</span></div>
+      <div class="hdr-sub">Timeline views of your portfolio &mdash; past, present, and future.</div>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</div>
+<div class="action-bar">
+  <span class="last-updated" id="lastUpdated">Last updated: &mdash;</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span id="statusMsg"></span>
+    <button class="run-btn" id="runBtn" onclick="runUpdate()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+      Run Update
+    </button>
+    <button class="run-btn" style="background:#475569;" onclick="clearNew()">Clear New</button>
+  </div>
+</div>
+<div class="content" id="content"></div>
+<script>
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BEGIN_TICKER_DATA — append new tickers above END_TICKER_DATA only
+// ═══════════════════════════════════════════════════════════════════════════════
+// BEGIN_TICKER_DATA
+const TICKER_DATA = {
+  RDU: {
+    name: 'Radius Gold',
+    exchange: 'TSXV',
+    presentationUrl: 'https://radiusgold.com/investors/presentations/',
+    color: '#0d9488',
+    catalysts: [
+      {symbol:'RDU',project:'Corporate',title:'Leadership transition: Longridge\u2192President, Ridgway\u2192CEO/Chairman',type:'Employee',confidence:'Confirmed',date:'2026-06-16',sourceType:'Company PR',link:'https://radiusgold.com/news/radius-gold-announces-leadership-transition-to-support-next-phase-of-growth/',notes:'Not project-specific'},
+      {symbol:'RDU',project:'Jonco Silver',title:'Surface sampling returns anomalous gallium values',type:'News',confidence:'Confirmed',date:'2026-03-30',sourceType:'Company PR',link:'https://radiusgold.com/news/radius-gold-reports-surface-sampling-results-at-the-jonco-silver-project-including-anomalous-gallium-values/',notes:'Ancash, Peru \u2014 early-stage'},
+      {symbol:'RDU',project:'Jonco Silver',title:'Drilling start \u2014 community access, environmental permit, MEM authorization all outstanding',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-03-30',sourceType:'Company PR',link:'https://radiusgold.com/news/radius-gold-reports-surface-sampling-results-at-the-jonco-silver-project-including-anomalous-gallium-values/',notes:'No date given \u2014 3 approvals outstanding'},
+      {symbol:'RDU',project:'Tierra Roja',title:'Permitting progress; defined 750m \u00d7 450m copper mineralization corridor',type:'News',confidence:'Confirmed',date:'2026-03-18',sourceType:'Company PR',link:'https://radiusgold.com/news/radius-advances-permitting-and-defines-an-expanded-copper-mineralization-footprint-at-tierra-roja-project-peru/',notes:''},
+      {symbol:'RDU',project:'Tierra Roja',title:'Drilling start \u2014 awaiting GREM Authorization to Commence Activities',type:'Forecasted Catalyst',confidence:'Speculative',date:'2025-07-07',sourceType:'Company PR',link:'https://radiusgold.com/news/drill-permits-granted-and-ip-survey-identifies-key-targets-at-radius-golds-tierra-roja-copper-project/',notes:'Rev1 Jul 7 2025 \u2192 Rev2 Jan 21 2026 \u2192 Rev3 Mar 18 2026'},
+      {symbol:'RDU',project:'Jonco Silver',title:'Option signed for 100% interest in Jonco Silver Project',type:'Milestone',confidence:'Confirmed',date:'2026-02-27',sourceType:'Company PR',link:'https://radiusgold.com/news/radius-signs-option-to-acquire-100-of-the-jonco-silver-project-peru/',notes:'US$4.15M staged + US$7M exploration commitment'},
+      {symbol:'RDU',project:'Holly',title:'Inferred resource: 1.32 Mt @ 6.46 g/t Au, 256 g/t Ag (406,316 oz AuEq)',type:'Milestone',confidence:'Confirmed',date:'2022-06-07',sourceType:'NI 43-101',link:'https://radiusgold.com/news/radius-gold-announces-initial-resource-estimate-of-406-316-oz-at-9.57-g-t-gold-equivalent-at-holly/',notes:'Only RDU project with formal M/I/I'},
+      {symbol:'RDU',project:'Amalia',title:'67 holes / 23,058m drilled 2019\u201322; JV stalled since Pan Am/Yamana merger',type:'News',confidence:'Confirmed',date:'2026-01-21',sourceType:'Company PR',link:'https://radiusgold.com/news/exploration-update-radius-advances-tierra-roja-permits-and-reviews-project-portfolio/',notes:'No resource estimate \u2014 \u201cdrilled but unclassified\u201d'},
+      {symbol:'RDU',project:'Corporate',title:'"Concept to Core: Radius & Rackla Next Up Copper & Gold Drill Campaigns"',type:'Event (video)',confidence:'Mixed',date:'2025-07-09',sourceType:'YouTube',link:'https://www.youtube.com/watch?v=9mRrPMnWIz0',notes:'Title/date only \u2014 also references RAK'}
+    ],
+    projectDefs: {
+      'Tierra Roja':{
+        rangeStart:'2025-01-01',futureMonths:9,
+        revisions:[
+          {date:'2025-07-07',note:'Rev 1 \u2014 drill permits granted, Phase 1 expected Q3 2025'},
+          {date:'2026-01-21',note:'Rev 2 \u2014 multiple approvals nearing completion'},
+          {date:'2026-03-18',note:'Rev 3 \u2014 GREM application submitted, described as final step'}
+        ],
+        events:[
+          {n:1,type:'past',date:'2025-04-29',text:'Hyperspectral, IP geophysics and 49-element geochemical grid program commenced',link:'https://radiusgold.com/news/radius-gold-accelerates-exploration-at-tierra-roja-with-integrated-hyperspectral-geophysics-and-geochemistry-programs/'},
+          {n:2,type:'past',date:'2025-07-07',text:'Drill permits granted by GREM; IP survey identifies two high-priority chargeability anomalies beneath caliche cover',link:'https://radiusgold.com/news/drill-permits-granted-and-ip-survey-identifies-key-targets-at-radius-golds-tierra-roja-copper-project/'},
+          {n:3,type:'past',date:'2026-01-21',text:'GREM technical review for access approved; SBN begins evaluation for Temporary Surface Use Permit',link:'https://radiusgold.com/news/exploration-update-radius-advances-tierra-roja-permits-and-reviews-project-portfolio/'},
+          {n:4,type:'past',date:'2026-03-18',text:'SBN provisional surface authorization received; 750m \u00d7 450m Cu-Ag corridor defined; GREM Authorization application submitted',link:'https://radiusgold.com/news/radius-advances-permitting-and-defines-an-expanded-copper-mineralization-footprint-at-tierra-roja-project-peru/'},
+          {n:5,type:'future',date:null,estDate:'2026-06-01',overdue:true,text:'FTA (Ficha T\u00e9cnica Ambiental) clearance \u2014 est. ~75 days from submission (Mar 18)',link:null},
+          {n:6,type:'future',date:null,estDate:'2026-06-01',overdue:true,text:'Archaeological clearance (CIRA) \u2014 est. ~75 days, runs parallel to FTA',link:null},
+          {n:7,type:'future',date:null,estDate:'2026-07-16',overdue:false,text:'GREM Authorization to Commence Activities \u2014 est. ~45 days after FTA+CIRA',link:null},
+          {n:8,type:'future',date:null,estDate:'2026-08-06',overdue:false,text:'Drill contracts signed \u2014 est. ~3 weeks after authorization',link:null},
+          {n:9,type:'milestone',date:null,estDate:'2026-09-03',overdue:false,text:'MILESTONE: Drill start \u2014 Phase 1 initial drill program (est. Q3 2026)',link:null}
+        ],
+        results:[
+          {n:1,date:'Apr 29, 2025',text:'Hyperspectral survey completed across project area \u2014 alteration mapping in progress',date_key:'2025-04-29'},
+          {n:2,date:'Jul 7, 2025',text:'IP geophysics complete: two high-priority chargeability anomalies identified beneath caliche cover',date_key:'2025-07-07'},
+          {n:3,date:'Mar 18, 2026',text:'49-element geochemical grid complete: confirms 750m \u00d7 450m Cu-Ag corridor under caliche cover',date_key:'2026-03-18'},
+          {n:4,date:null,text:'No drill holes to date \u2014 all data is surface sampling and geophysics only'}
+        ]
+      },
+      'Jonco Silver':{
+        rangeStart:'2026-01-01',futureMonths:9,
+        revisions:[{date:'2026-03-30',note:'Rev 1 \u2014 three approvals outstanding, no date given'}],
+        events:[
+          {n:1,type:'past',date:'2026-02-27',text:'Option signed: 100% interest acquired (US$4.15M staged + US$7M exploration commitment)',link:'https://radiusgold.com/news/radius-signs-option-to-acquire-100-of-the-jonco-silver-project-peru/'},
+          {n:2,type:'past',date:'2026-03-30',text:'Surface sampling returns anomalous gallium values alongside Ag-Au-Pb-Zn mineralization',link:'https://radiusgold.com/news/radius-gold-reports-surface-sampling-results-at-the-jonco-silver-project-including-anomalous-gallium-values/'},
+          {n:3,type:'future',date:null,estDate:null,overdue:false,text:'Community access agreement \u2014 outstanding',link:null},
+          {n:4,type:'future',date:null,estDate:null,overdue:false,text:'Environmental permit \u2014 outstanding',link:null},
+          {n:5,type:'future',date:null,estDate:null,overdue:false,text:'Ministry of Energy & Mines authorization \u2014 outstanding',link:null},
+          {n:6,type:'milestone',date:null,estDate:null,overdue:false,text:'MILESTONE: Drill start',link:null}
+        ],
+        results:[
+          {n:1,date:'Mar 30, 2026',text:'Surface sampling: anomalous Ga values alongside Ag-Au-Pb-Zn mineralization \u2014 Ancash, Peru',date_key:'2026-03-30'},
+          {n:2,date:null,text:'No drill holes to date under Radius ownership'}
+        ]
+      },
+      'Amalia':{
+        rangeStart:'2025-07-01',futureMonths:9,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2026-01-21',text:'JV status update \u2014 stalled since Pan Am/Yamana merger; 67 holes / 23,058m completed 2019\u201322',link:'https://radiusgold.com/news/exploration-update-radius-advances-tierra-roja-permits-and-reviews-project-portfolio/'},
+          {n:2,type:'future',date:null,estDate:null,overdue:false,text:'JV reactivation \u2014 no restart date given',link:null},
+          {n:3,type:'future',date:null,estDate:null,overdue:false,text:'NI 43-101 resource estimate \u2014 requires updated technical report',link:null}
+        ],
+        results:[
+          {n:1,date:'2019\u20132022',text:'67 drill holes / 23,058m completed under Radius/Pan American JV'},
+          {n:2,date:'2022',text:'Best intercept: 13.55m @ 841 g/t Ag and 10.25 g/t Au at El Cuervo target'},
+          {n:3,date:null,text:'No formal NI 43-101 resource estimate published \u2014 \u201cdrilled but unclassified\u201d'}
+        ]
+      },
+      'Corporate':{
+        rangeStart:'2025-07-01',futureMonths:6,
+        revisions:[],
+        events:[
+          {n:1,type:'media',date:'2025-07-09',text:'"Concept to Core: Radius & Rackla Next Up Copper & Gold Drill Campaigns" \u2014 YouTube (also references RAK)',link:'https://www.youtube.com/watch?v=9mRrPMnWIz0'},
+          {n:2,type:'past',date:'2026-06-16',text:'Leadership transition: Longridge\u2192President, Ridgway\u2192CEO/Chairman',link:'https://radiusgold.com/news/radius-gold-announces-leadership-transition-to-support-next-phase-of-growth/'}
+        ],
+        results:[{n:1,date:null,text:'No exploration results \u2014 corporate-level events only'}]
+      }
+    },
+    portfolio:[
+      {name:'Tierra Roja',loc:'Arequipa, southern Peru \u2014 1,700m elevation, 8,170 ha',stage:'Early-stage, never drilled. No M/I/I.',tag:'speculative'},
+      {name:'Jonco Silver',loc:'Ancash, Peru \u2014 near the Pierina gold mine',stage:'Early-stage Ag-Au-Pb-Zn, option-stage. No M/I/I.',tag:'speculative'},
+      {name:'Holly',loc:'Eastern Guatemala, Jocotan Fault zone. JV 60% Volcanic Gold Mines / 40% Radius',stage:'Inferred 1.32 Mt @ 6.46 g/t Au, 256 g/t Ag (406,316 oz AuEq)',tag:'confirmed'},
+      {name:'Amalia',loc:'Chihuahua, Mexico, ~10,000 ha. JV with Pan American Silver (65% earned)',stage:'67 holes / 23,058m drilled, no formal resource \u2014 \u201cdrilled but unclassified\u201d',tag:'confirmed'},
+      {name:'Tlacolula',loc:'Near the San Jos\u00e9 Mine, Mexico',stage:'NSR royalty only \u2014 not an active exploration target',tag:'confirmed'}
+    ]
+  },
+
+  CRCL: {
+    name: 'Corcel Exploration',
+    exchange: 'CSE',
+    presentationUrl: 'https://corcelexploration.com/investors/',
+    color: '#7c3aed',
+    catalysts: [
+      {symbol:'CRCL',project:'Yuma King',title:'Yuma King property acquisition completed \u2014 3,200 ha, 515 federal mining claims',type:'Milestone',confidence:'Confirmed',date:'2025-01-09',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:'La Paz County, Arizona'},
+      {symbol:'CRCL',project:'Corporate',title:'Jon Ward appointed CEO & Director',type:'Employee',confidence:'Confirmed',date:'2025-04-07',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Yuma King',title:'High-grade Cu/Au surface sampling: up to 11.60% Cu and 17.15 g/t Au across multiple zones',type:'News',confidence:'Confirmed',date:'2025-05-13',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:'Phase 1 surface exploration program'},
+      {symbol:'CRCL',project:'Yuma King',title:'Drone-based airborne magnetic survey commenced',type:'Milestone',confidence:'Confirmed',date:'2025-05-29',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Corporate',title:'Lee Beasley appointed VP Exploration (20+ years)',type:'Employee',confidence:'Confirmed',date:'2025-06-23',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Corporate',title:'US OTCQB listing commenced \u2014 ticker CRLEF',type:'Milestone',confidence:'Confirmed',date:'2025-07-29',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Yuma King',title:'Historical drill data review confirms 45.4m @ 0.78% Cu, 0.53 g/t Au, 6.3 g/t Ag',type:'Research',confidence:'Confirmed',date:'2025-10-07',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:'Unverified by Corcel QP'},
+      {symbol:'CRCL',project:'Yuma King',title:'Phase 1 drill program (~2,000m) and 8.5km IP survey planned; targets defined',type:'Milestone',confidence:'Confirmed',date:'2025-10-15',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:'YK Mine, YK West, Three Musketeers zones'},
+      {symbol:'CRCL',project:'Yuma King',title:'McCoy Mountains Formation identified with graphite/graphene potential at YK West',type:'News',confidence:'Confirmed',date:'2025-10-27',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Corporate',title:'Non-brokered PP closed \u2014 11.68M units @ $0.18/unit (~$2.1M gross)',type:'News',confidence:'Confirmed',date:'2025-12-04',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Corporate',title:'Grant Tanaka appointed CFO',type:'Employee',confidence:'Confirmed',date:'2026-01-15',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Yuma King',title:'All drill bonds and permits posted \u2014 Phase 1 fully permitted and drill-ready',type:'Milestone',confidence:'Confirmed',date:'2026-02-24',sourceType:'Company PR',link:'https://corcelexploration.com/news/',notes:''},
+      {symbol:'CRCL',project:'Yuma King',title:'Phase 1 drill program commenced \u2014 6 holes, 1,087m, >500m strike-length',type:'Milestone',confidence:'Confirmed',date:'2026-03-25',sourceType:'Company PR',link:'https://www.newsfilecorp.com/release/289848/Corcel-Exploration-Commences-Drill-Program-at-Yuma-King-Project',notes:'Targeting Cu-Au skarn below historical mine workings'},
+      {symbol:'CRCL',project:'Yuma King',title:'IP survey results: new YK North Skarn target; YK West deep anomalies (>250m) confirmed',type:'News',confidence:'Confirmed',date:'2026-04-27',sourceType:'Company PR',link:'https://www.newsfilecorp.com/release/294337/Corcel-Exploration-Reports-Positive-Results-from-an-Induced-Polarization-Survey-at-Yuma-King-Arizona',notes:'10 line-km 2D pole-dipole IP survey'},
+      {symbol:'CRCL',project:'Yuma King',title:'YK26-001: 56.65m @ 1.07% Cu, 0.79 g/t Au, 7.1 g/t Ag, 180ppm Mo from 3.35m',type:'Milestone',confidence:'Confirmed',date:'2026-06-01',sourceType:'Company PR',link:'https://www.newsfilecorp.com/release/299607/Corcel-Drills-56.65-Meters-of-1.07-Cu-0.79-gt-Au-and-7.1-gt-Ag-in-the-First-Drill-Hole-at-the-Yuma-King-Project-Arizona',notes:'Incl. 8.80m @ 2.07% Cu, 1.85 g/t Au, 20.5 g/t Ag; 5 holes pending'},
+      {symbol:'CRCL',project:'Yuma King',title:'Assay results pending \u2014 5 remaining Phase 1 holes (YK26-002 to YK26-006)',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-01',sourceType:'Company PR',link:'https://www.newsfilecorp.com/release/299607/Corcel-Drills-56.65-Meters-of-1.07-Cu-0.79-gt-Au-and-7.1-gt-Ag-in-the-First-Drill-Hole-at-the-Yuma-King-Project-Arizona',notes:'Rev1 Jun 1 2026 \u2014 results pending'}
+    ],
+    projectDefs: {
+      'Yuma King':{
+        rangeStart:'2025-01-01',futureMonths:9,
+        revisions:[{date:'2026-06-01',note:'Rev 1 \u2014 YK26-001 results in; 5 holes still pending assay'}],
+        events:[
+          {n:1, type:'past',date:'2025-01-09',text:'Property acquisition completed \u2014 3,200 ha, 515 federal claims, La Paz County AZ',link:'https://corcelexploration.com/news/'},
+          {n:2, type:'past',date:'2025-05-13',text:'Surface sampling: up to 11.60% Cu and 17.15 g/t Au across YK Mine, YK West, Three Musketeers zones',link:'https://corcelexploration.com/news/'},
+          {n:3, type:'past',date:'2025-05-29',text:'Drone-based airborne magnetic survey commenced over full project area',link:'https://corcelexploration.com/news/'},
+          {n:4, type:'past',date:'2025-10-07',text:'Historical 2006 drill data reviewed: 45.4m @ 0.78% Cu, 0.53 g/t Au, 6.3 g/t Ag (Big Bar Gold, unverified)',link:'https://corcelexploration.com/news/'},
+          {n:5, type:'past',date:'2025-10-15',text:'Phase 1 drill program (~2,000m) and 8.5km IP survey planned; YK Mine, YK West, Three Musketeers targets defined',link:'https://corcelexploration.com/news/'},
+          {n:6, type:'past',date:'2025-10-27',text:'McCoy Mountains Formation at YK West: potential graphite/graphene target below porphyry anomaly',link:'https://corcelexploration.com/news/'},
+          {n:7, type:'past',date:'2026-02-24',text:'All drill bonds and permits posted \u2014 Phase 1 fully permitted and drill-ready',link:'https://corcelexploration.com/news/'},
+          {n:8, type:'past',date:'2026-03-25',text:'Phase 1 drill program commenced \u2014 6 holes, 1,087m, >500m strike-length at Yuma King mine target',link:'https://www.newsfilecorp.com/release/289848/Corcel-Exploration-Commences-Drill-Program-at-Yuma-King-Project'},
+          {n:9, type:'past',date:'2026-04-27',text:'IP survey results: new YK North Skarn target; YK West deep anomalies (>250m depth) confirmed',link:'https://www.newsfilecorp.com/release/294337/Corcel-Exploration-Reports-Positive-Results-from-an-Induced-Polarization-Survey-at-Yuma-King-Arizona'},
+          {n:10,type:'past',date:'2026-06-01',text:'YK26-001: 56.65m @ 1.07% Cu, 0.79 g/t Au, 7.1 g/t Ag, 180ppm Mo from 3.35m \u2014 confirms/expands historical intercepts',link:'https://www.newsfilecorp.com/release/299607/Corcel-Drills-56.65-Meters-of-1.07-Cu-0.79-gt-Au-and-7.1-gt-Ag-in-the-First-Drill-Hole-at-the-Yuma-King-Project-Arizona'},
+          {n:11,type:'future',date:null,estDate:'2026-07-15',overdue:false,text:'YK26-002 assay results \u2014 at Agat Labs Calgary',link:null},
+          {n:12,type:'future',date:null,estDate:'2026-07-22',overdue:false,text:'YK26-003 assay results',link:null},
+          {n:13,type:'future',date:null,estDate:'2026-07-29',overdue:false,text:'YK26-004 & YK26-005 assay results',link:null},
+          {n:14,type:'future',date:null,estDate:'2026-08-12',overdue:false,text:'YK26-006 assay results (deepest hole at 274m)',link:null},
+          {n:15,type:'milestone',date:null,estDate:'2026-09-15',overdue:false,text:'MILESTONE: Phase 2 drill program \u2014 scope defined after full Phase 1 results; IP identified YK North Skarn and deep YK West as new targets',link:null}
+        ],
+        results:[
+          {n:1,date:'May 13, 2025',text:'Surface sampling: up to 11.60% Cu and 17.15 g/t Au at YK Mine, YK West, Three Musketeers zones',date_key:'2025-05-13'},
+          {n:2,date:'Oct 7, 2025', text:'Historical 2006 hole (unverified): 45.4m @ 0.78% Cu, 0.53 g/t Au, 6.3 g/t Ag',date_key:'2025-10-07'},
+          {n:3,date:'Jun 1, 2026', text:'YK26-001 (maiden hole): 56.65m @ 1.07% Cu, 0.79 g/t Au, 7.1 g/t Ag, 180ppm Mo from 3.35m. Best: 8.80m @ 2.07% Cu, 1.85 g/t Au from 45m. Cu oxides in Redwall Limestone skarn.',date_key:'2026-06-01'},
+          {n:4,date:null,         text:'5 holes pending results (YK26-002 to YK26-006): ~995m, testing >500m additional strike and down-dip extensions. No resource estimate yet.'}
+        ]
+      },
+      'Corporate':{
+        rangeStart:'2025-01-01',futureMonths:9,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2025-04-07',text:'Jon Ward appointed CEO & Director',link:'https://corcelexploration.com/news/'},
+          {n:2,type:'past',date:'2025-06-23',text:'Lee Beasley appointed VP Exploration (20+ years)',link:'https://corcelexploration.com/news/'},
+          {n:3,type:'past',date:'2025-07-29',text:'US OTCQB listing commenced \u2014 ticker CRLEF',link:'https://corcelexploration.com/news/'},
+          {n:4,type:'past',date:'2025-12-04',text:'Non-brokered PP closed \u2014 11.68M units @ $0.18/unit (~$2.1M gross)',link:'https://corcelexploration.com/news/'},
+          {n:5,type:'past',date:'2026-01-15',text:'Grant Tanaka appointed CFO',link:'https://corcelexploration.com/news/'},
+          {n:6,type:'past',date:'2026-02-17',text:'Thy Truong appointed to Board of Directors',link:'https://corcelexploration.com/news/'}
+        ],
+        results:[{n:1,date:null,text:'No exploration results \u2014 corporate-level events only'}]
+      }
+    },
+    portfolio:[
+      {name:'Yuma King',loc:'La Paz County, west-central Arizona \u2014 near Salome, AZ. 3,200 ha, 515 unpatented federal mining claims, Ellsworth Mining District',stage:'Phase 1 drilled (1,087m, 6 holes). YK26-001: 56.65m @ 1.07% Cu, 0.79 g/t Au. 5 holes pending. Past production: 8,600t @ 2.3% Cu (1940\u20131963). No formal NI 43-101 resource estimate yet.',tag:'confirmed'}
+    ]
+  },
+
+  NLR: {
+    name: 'Northern Lights Resources',
+    exchange: 'CSE',
+    presentationUrl: 'https://northernlightsresources.com/wp-content/uploads/2026/04/Northern-Lights-Resources_Presentation_april2026_low.pdf',
+    color: '#0369a1',
+    catalysts: [
+      {symbol:'NLR',project:'Corporate',title:'Finalized debt settlement with Mirabel Capital; completed $100,000 non-brokered PP',type:'Milestone',confidence:'Confirmed',date:'2025-02-03',sourceType:'Company PR',link:'https://northernlightsresources.com/news-releases/2025/',notes:'Cleared debt overhang ahead of Horetzky push'},
+      {symbol:'NLR',project:'Horetzky',title:'Applied for 5-year Multi Year Area Based (MYAB) exploration permit',type:'Milestone',confidence:'Confirmed',date:'2025-02-19',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2649-cse/nlr/175470-northern-lights-announces-application-for-a-multi-year-exploration-permit-for-the-horetzky-project.html',notes:'Permit covers up to 100 drill holes + 250m trenching; plan was 20 holes at 5 sites'},
+      {symbol:'NLR',project:'Corporate',title:'Announced sale of Secret Pass Gold Project for $600K; reversed Nov 25, 2025 — sale did NOT proceed; Secret Pass still held by NLR',type:'Milestone',confidence:'Confirmed',date:'2025-06-19',sourceType:'Company PR',link:'https://www.tipranks.com/news/company-announcements/northern-lights-resources-sells-secret-pass-gold-project',notes:'Strategy: monetize early-stage assets, refocus capital on Horetzky'},
+      {symbol:'NLR',project:'Horetzky',title:'MYAB permit granted \u2014 5-year exploration authorization including up to 100 drill holes',type:'Milestone',confidence:'Confirmed',date:'2025-07-23',sourceType:'Company PR',link:'https://northernlightsresources.com/',notes:'Geophysical surveying, trenching, drilling all now authorized'},
+      {symbol:'NLR',project:'Pup',title:'Commenced exploration at Pup Copper-Gold Project, Yukon',type:'Milestone',confidence:'Confirmed',date:'2025-10-02',sourceType:'Company PR',link:'https://investingnews.com/northern-lights-commences-exploration-at-the-pup-project/',notes:'10km west of Dawson City; never drilled, new 2024 discovery'},
+      {symbol:'NLR',project:'Pup',title:'Class 3 exploration permit granted (10-year) \u2014 allows drilling, trenching, trail construction',type:'Milestone',confidence:'Confirmed',date:'2025-10-29',sourceType:'Company PR',link:'https://northernlightsresources.com/',notes:'Petal target: 400m\u00d71,000m open-ended Cu anomaly, up to 3.799% Cu in rock'},
+      {symbol:'NLR',project:'Corporate',title:'Closed upsized non-brokered private placement \u2014 C$400,000 gross',type:'News',confidence:'Confirmed',date:'2025-12-17',sourceType:'Company PR',link:'https://www.tradingview.com/news/reuters.com,2025-12-17:newsml_Tnwc3Wzcl:0-northern-lights-resources-announces-closing-of-upsized-non-brokered-private-placement/',notes:'Units @ $0.10, upsized from initial offering due to demand'},
+      {symbol:'NLR',project:'Corporate',title:'Corporate recap: 2025 called "foundational year," 2026 positioned as catalyst-heavy execution year',type:'News',confidence:'Confirmed',date:'2026-01-06',sourceType:'Company PR',link:'https://investingnews.com/northern-lights-resources-provides-corporate-recap-highlighting-strong-execution-across-key-initiatives/',notes:'CEO Luka Capin recap \u2014 Horetzky & Pup both brought to drill-ready status in 2025'},
+      {symbol:'NLR',project:'Corporate',title:'Sold 1% NSR royalty on Medicine Springs Project (Nevada) to Torex Gold subsidiary for US$2.2M cash',type:'Milestone',confidence:'Confirmed',date:'2026-04-03',sourceType:'Company PR',link:'https://www.theglobeandmail.com/investing/markets/markets-news/Tipranks/1138252/northern-lights-sells-nevada-royalty-to-fund-core-copper-and-gold-projects/',notes:'Non-dilutive funding; capital redeployed into Horetzky/Pup'},
+      {symbol:'NLR',project:'Horetzky',title:'2025 field program results: multi-element Cu-Au-Ag-Mo anomalies confirm porphyry-style system',type:'Milestone',confidence:'Confirmed',date:'2026-06-02',sourceType:'Company PR',link:'https://investingnews.com/northern-lights-reports-strong-multi-element-anomalies-at-horetzky-copper-project-british-columbia-results-from-the-2025-field-work/',notes:'Rock to 13,750ppm Cu (1.38%), Au to 1.18 g/t, Ag to 40.5 g/t. No drilling yet \u2014 geochem/geophysics only'},
+      {symbol:'NLR',project:'Horetzky',title:'Drilling start \u2014 up to 100 holes authorized under MYAB permit, no firm date given',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-02',sourceType:'Company PR',link:'https://investingnews.com/northern-lights-reports-strong-multi-element-anomalies-at-horetzky-copper-project-british-columbia-results-from-the-2025-field-work/',notes:'2026 flagged as "catalyst-heavy" by management; BC field season typically Jun\u2013Sep'}
+    ],
+    projectDefs: {
+      'Horetzky':{
+        rangeStart:'2025-01-01',futureMonths:9,
+        revisions:[{date:'2026-06-02',note:'Rev 1 \u2014 2025 field results in, drilling still not started, no firm date'}],
+        events:[
+          {n:1,type:'past',date:'2025-02-19',text:'Applied for 5-year MYAB exploration permit \u2014 plan to drill up to 20 holes at 5 sites within copper anomaly zone',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2649-cse/nlr/175470-northern-lights-announces-application-for-a-multi-year-exploration-permit-for-the-horetzky-project.html'},
+          {n:2,type:'past',date:'2025-07-23',text:'MYAB permit granted \u2014 5-year authorization for geophysics, trenching, and up to 100 drill holes',link:'https://northernlightsresources.com/'},
+          {n:3,type:'past',date:'2026-06-02',text:'2025 field program: 218 soil + 103 rock samples at ALS Terrace lab. Rock to 13,750ppm Cu (1.38%), 1.18 g/t Au, 40.5 g/t Ag. Soil to 2,150ppm Cu. Confirms porphyry-style Cu-Mo-Ag\u00b1Au system across >8km anomaly',link:'https://investingnews.com/northern-lights-reports-strong-multi-element-anomalies-at-horetzky-copper-project-british-columbia-results-from-the-2025-field-work/'},
+          {n:4,type:'future',date:null,estDate:'2026-07-01',overdue:false,text:'Drill program mobilization \u2014 BC field season typically Jun\u2013Sep; permit allows up to 100 holes, no confirmed date',link:null},
+          {n:5,type:'milestone',date:null,estDate:'2026-09-01',overdue:false,text:'MILESTONE: First drill results at Horetzky \u2014 would be company\u2019s first-ever drilling at this target',link:null}
+        ],
+        results:[
+          {n:1,date:'Jun 2, 2026',text:'2025 program: rock samples to 13,750ppm Cu (1.38%), 96.2ppm Mo, in phyllic-altered diorite. Soil to 2,150ppm Cu, 35.8ppm Mo. Au to 1.18 g/t, Ag to 40.5 g/t. 218 soil + 103 rock samples (2025); 1,083 soil + 72 rock historically',date_key:'2026-06-02'},
+          {n:2,date:null,text:'No drill holes to date \u2014 all data is surface geochemistry (soil/rock sampling) and geophysics. Mineralization remains open laterally and at depth'}
+        ]
+      },
+      'Pup':{
+        rangeStart:'2025-07-01',futureMonths:9,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2025-10-02',text:'Commenced exploration at Pup Copper-Gold Project \u2014 new 2024 discovery, never drilled, strong surficial oxidation',link:'https://investingnews.com/northern-lights-commences-exploration-at-the-pup-project/'},
+          {n:2,type:'past',date:'2025-10-29',text:'Class 3 exploration permit granted (10-year) \u2014 allows drilling, trenching, trail construction and road access',link:'https://northernlightsresources.com/'},
+          {n:3,type:'future',date:null,estDate:null,overdue:false,text:'Follow-up drill program \u2014 no date given; 3 targets identified (Petal, Gismo, Finn)',link:null}
+        ],
+        results:[
+          {n:1,date:null,text:'Petal target: 400m \u00d7 1,000m open-ended NW-trending Cu anomaly, up to 2,963 ppm Cu in soil, up to 3.799% Cu in rock. Geology analogous to Minto Copper Belt targets'},
+          {n:2,date:null,text:'No drill holes to date \u2014 surface geochemistry only. Two additional unconstrained targets (Gismo, Finn) identified but not yet detailed'}
+        ]
+      },
+      'Corporate':{
+        rangeStart:'2025-01-01',futureMonths:6,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2025-02-03',text:'Finalized Mirabel Capital debt settlement; completed $100,000 non-brokered PP',link:'https://northernlightsresources.com/news-releases/2025/'},
+          {n:2,type:'past',date:'2025-06-19',text:'Sold 100% interest in Secret Pass Gold Project (AZ) for $600,000 cash/equity + retained 2% NSR',link:'https://www.tipranks.com/news/company-announcements/northern-lights-resources-sells-secret-pass-gold-project'},
+          {n:3,type:'past',date:'2025-12-17',text:'Closed upsized non-brokered PP \u2014 C$400,000 gross @ $0.10/unit',link:'https://www.tradingview.com/news/reuters.com,2025-12-17:newsml_Tnwc3Wzcl:0-northern-lights-resources-announces-closing-of-upsized-non-brokered-private-placement/'},
+          {n:4,type:'past',date:'2026-01-06',text:'CEO corporate recap: 2025 "foundational," 2026 positioned as catalyst-heavy execution year',link:'https://investingnews.com/northern-lights-resources-provides-corporate-recap-highlighting-strong-execution-across-key-initiatives/'},
+          {n:5,type:'past',date:'2026-04-03',text:'Sold 1% NSR royalty on Medicine Springs (NV) to Torex Gold subsidiary for US$2.2M cash',link:'https://www.theglobeandmail.com/investing/markets/markets-news/Tipranks/1138252/northern-lights-sells-nevada-royalty-to-fund-core-copper-and-gold-projects/'}
+        ],
+        results:[{n:1,date:null,text:'No exploration results \u2014 corporate-level events only'}]
+      }
+    },
+    portfolio:[
+      {name:'Horetzky',loc:'Babine Porphyry Belt, central British Columbia \u2014 MYAB permit covers up to 100 drill holes',stage:'Never drilled. 2025 geochem confirms porphyry Cu-Mo-Ag\u00b1Au system: rock to 13,750ppm Cu (1.38%), Au to 1.18 g/t, Ag to 40.5 g/t across >8km anomaly. No M/I/I.',tag:'speculative'},
+      {name:'Pup',loc:'Yukon, ~10km west of Dawson City \u2014 accessible via placer mine road network',stage:'New 2024 discovery, never drilled. Petal target: 400m\u00d71,000m open Cu anomaly, up to 3.799% Cu in rock. Gismo & Finn targets unconstrained. No M/I/I.',tag:'speculative'},
+      {name:'Secret Pass',loc:'Mohave County, Arizona',stage:'Sale announced Jun 2025 but NOT proceeded — NLR announced Nov 25, 2025 it will not complete the sale. Still an active NLR asset. Early-stage gold project.',tag:'speculative'}
+    ]
+  },
+
+  RAK: {
+    name: 'Rackla Metals',
+    exchange: 'TSXV',
+    presentationUrl: 'https://racklametals.com/',
+    color: '#b91c1c',
+    catalysts: [
+      {symbol:'RAK',project:'Grad',title:'Land Use Permit received for maiden drill program at Grad Property, NWT',type:'Milestone',confidence:'Confirmed',date:'2025-04-30',sourceType:'Company PR',link:'https://racklametals.com/news/',notes:'Targeting Reduced Intrusion-Related Gold Systems (RIRGS), Tombstone Gold Belt'},
+      {symbol:'RAK',project:'Corporate',title:'Completed private placement financing \u2014 $2.99 million raised',type:'News',confidence:'Confirmed',date:'2025-04-24',sourceType:'Company PR',link:'https://racklametals.com/news/',notes:''},
+      {symbol:'RAK',project:'Grad',title:'Crews mobilized to commence 2025 exploration program',type:'Milestone',confidence:'Confirmed',date:'2025-06-11',sourceType:'Company PR',link:'https://racklametals.com/news/',notes:''},
+      {symbol:'RAK',project:'Grad',title:'Drilling commenced at BiTe zone, Grad Property',type:'Milestone',confidence:'Confirmed',date:'2025-07-14',sourceType:'Company PR',link:'https://racklametals.com/news/',notes:'Testing below 2024 high-grade BiTe showing discovery'},
+      {symbol:'RAK',project:'Grad',title:'Drill plan increased 25% to 5,000m due to encouraging core observations',type:'News',confidence:'Confirmed',date:'2025-08-19',sourceType:'Company PR',link:'https://aheadoftheherd.com/rackla-highlights-sampling-results-as-it-awaits-rest-of-assays-from-grad-richard-mills/',notes:'Upsized from original 4,000m target'},
+      {symbol:'RAK',project:'Grad',title:'2025 drill program completed at BiTe; new gold discovery reported at Manta (up to 31 g/t Au)',type:'Milestone',confidence:'Confirmed',date:'2025-09-08',sourceType:'Company PR',link:'https://racklametals.com/news/',notes:'Manta is a regional discovery outside the core BiTe drill target'},
+      {symbol:'RAK',project:'Grad',title:'Initial assay results: holes G25-001 to 003 tested below 2024 BiTe showing',type:'Milestone',confidence:'Confirmed',date:'2025-10-06',sourceType:'Company PR',link:'https://x.com/RacklaMetals/status/1975186930061979747',notes:'First 3 of 10 holes reported'},
+      {symbol:'RAK',project:'Grad',title:'Regional exploration update: new discoveries at Calypso (>10 g/t Au) and Ogre (1.5km Au-Bi-Te-As anomaly)',type:'News',confidence:'Confirmed',date:'2025-10-21',sourceType:'Company PR',link:'https://aheadoftheherd.com/rackla-highlights-sampling-results-as-it-awaits-rest-of-assays-from-grad-richard-mills/',notes:'7 of 10 drill holes still pending due to lab backlog'},
+      {symbol:'RAK',project:'Grad',title:'Drill holes G25-004 to G25-008 analytical results reported',type:'Milestone',confidence:'Confirmed',date:'2025-11-27',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2593-tsx-venture/rak/193067-grad-property-returns-10-5m-2-56-g-t-au-in-hole-g25-009.html',notes:''},
+      {symbol:'RAK',project:'Grad',title:'Strongest 2025 result: 10.5m @ 2.56 g/t Au in hole G25-009, incl. 8.45 g/t Au over 1.5m',type:'Milestone',confidence:'Confirmed',date:'2025-12-10',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2593-tsx-venture/rak/193067-grad-property-returns-10-5m-2-56-g-t-au-in-hole-g25-009.html',notes:'Final 2 holes (G25-009, 010) reported \u2014 all 10 holes now in'},
+      {symbol:'RAK',project:'Lentung',title:'Lentung tungsten property (19,600 ha, 100% owned) acquired by staking',type:'Milestone',confidence:'Confirmed',date:'2026-01-20',sourceType:'Company PR',link:'https://racklametals.com/rackla-summarizes-2025-exploration-results-and-plans-for-2026/',notes:'Formerly "Lened" \u2014 historic Union Carbide tungsten property, 60km from Cantung mine'},
+      {symbol:'RAK',project:'Grad',title:'Year-end 2025 summary: drill results "did not meet expectations"; wrong intrusive phase/structure likely tested',type:'News',confidence:'Confirmed',date:'2026-01-20',sourceType:'Company PR',link:'https://racklametals.com/rackla-summarizes-2025-exploration-results-and-plans-for-2026/',notes:'Honest disclosure \u2014 2026 plan is to remap before redrilling'},
+      {symbol:'RAK',project:'Lentung',title:'Data compilation update: digitized historical Union Carbide dataset \u2014 26,900m / 178 holes, 15 tungsten occurrences over 15km strike',type:'News',confidence:'Confirmed',date:'2026-03-30',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2593-tsx-venture/rak/200191-rackla-provides-update-on-lentung-tungsten-property-data-compilation-and-2026-exploration-program.html',notes:'Historical avg mill grade 1.14% WO\u2083; planned 10,000m 2026 drill program'},
+      {symbol:'RAK',project:'Corporate',title:'Announced up to $3.44M non-brokered PP (charity flow-through units)',type:'News',confidence:'Confirmed',date:'2026-04-22',sourceType:'Company PR',link:'https://racklametals.com/rackla-metals-announces-up-to-3-44-million-non-brokered-private-placement/',notes:'Proceeds earmarked for Lentung drilling'},
+      {symbol:'RAK',project:'Corporate',title:'Closed PP \u2014 $3.44M raised via 16M charity flow-through units @ $0.215',type:'Milestone',confidence:'Confirmed',date:'2026-05-25',sourceType:'Company PR',link:'https://racklametals.com/rackla-metals-completes-private-placement-financing-raising-3-44-million/',notes:'Cash position now ~$13M'},
+      {symbol:'RAK',project:'Lentung',title:'Final 5-year Type A land use permit received from Sahtu Land and Water Board \u2014 fully permitted for 2026 season',type:'Milestone',confidence:'Confirmed',date:'2026-05-21',sourceType:'Company PR',link:'https://aheadoftheherd.com/racklas-lentung-project-now-fully-permitted-for-2026-exploration-richard-mills/',notes:'Allows 49-person camp, drilling, trail/access work'},
+      {symbol:'RAK',project:'Lentung',title:'2026 field program commenced \u2014 10,000m drill program (4,000m twin holes + 6,000m RC) underway',type:'Milestone',confidence:'Confirmed',date:'2026-05-26',sourceType:'Company PR',link:'https://mining.com.au/rackla-fully-permitted-at-lentung/',notes:'Twinning 27 historical holes to confirm/modernize Union Carbide results'},
+      {symbol:'RAK',project:'Lentung',title:'Assay results pending from 2026 Lentung drill program',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-05-26',sourceType:'Company PR',link:'https://mining.com.au/rackla-fully-permitted-at-lentung/',notes:'No firm date \u2014 program ongoing as of late June 2026; goal is resource calculation by season end'}
+    ],
+    projectDefs: {
+      'Grad':{
+        rangeStart:'2025-04-01',futureMonths:9,
+        revisions:[],
+        events:[
+          {n:1, type:'past',date:'2025-04-30',text:'Land Use Permit received for maiden drill program at Grad Property',link:'https://racklametals.com/news/'},
+          {n:2, type:'past',date:'2025-06-11',text:'Crews mobilized to commence 2025 exploration program',link:'https://racklametals.com/news/'},
+          {n:3, type:'past',date:'2025-07-14',text:'Drilling commenced at BiTe zone, testing below 2024 high-grade showing',link:'https://racklametals.com/news/'},
+          {n:4, type:'past',date:'2025-08-19',text:'Drill plan upsized 25% to 5,000m on encouraging core observations',link:'https://aheadoftheherd.com/rackla-highlights-sampling-results-as-it-awaits-rest-of-assays-from-grad-richard-mills/'},
+          {n:5, type:'past',date:'2025-09-08',text:'2025 drill program completed at BiTe; new regional discovery at Manta (up to 31 g/t Au)',link:'https://racklametals.com/news/'},
+          {n:6, type:'past',date:'2025-10-06',text:'Initial assays: holes G25-001\u2013003 tested below 2024 BiTe showing',link:'https://x.com/RacklaMetals/status/1975186930061979747'},
+          {n:7, type:'past',date:'2025-10-21',text:'Regional update: new discoveries at Calypso (>10 g/t Au) and Ogre (1.5km Au-Bi-Te-As anomaly); 7 of 10 holes still pending (lab backlog)',link:'https://aheadoftheherd.com/rackla-highlights-sampling-results-as-it-awaits-rest-of-assays-from-grad-richard-mills/'},
+          {n:8, type:'past',date:'2025-11-27',text:'Drill holes G25-004 to G25-008 analytical results reported',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2593-tsx-venture/rak/193067-grad-property-returns-10-5m-2-56-g-t-au-in-hole-g25-009.html'},
+          {n:9, type:'past',date:'2025-12-10',text:'Final holes G25-009/010: best 2025 result 10.5m @ 2.56 g/t Au, incl. 8.45 g/t Au/1.5m. All 10 holes now reported',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2593-tsx-venture/rak/193067-grad-property-returns-10-5m-2-56-g-t-au-in-hole-g25-009.html'},
+          {n:10,type:'past',date:'2026-01-20',text:'Year-end review: 2025 drilling "did not meet expectations" \u2014 geochem suggests wrong intrusive phase/structure was tested at BiTe',link:'https://racklametals.com/rackla-summarizes-2025-exploration-results-and-plans-for-2026/'},
+          {n:11,type:'future',date:null,estDate:null,overdue:false,text:'2026 remapping and refined target generation before any redrill decision \u2014 no committed 2026 Grad drill date',link:null}
+        ],
+        results:[
+          {n:1,date:'Oct 6, 2025', text:'G25-001\u2013003: tested below 2024 BiTe showing, results described as below high-grade expectations',date_key:'2025-10-06'},
+          {n:2,date:'Nov 27, 2025',text:'G25-004\u2013008: analytical results reported, part of 10-hole 2025 campaign',date_key:'2025-11-27'},
+          {n:3,date:'Dec 10, 2025',text:'G25-009: 10.5m @ 2.56 g/t Au incl. 8.45 g/t Au/1.5m \u2014 strongest hole of the 2025 campaign. Au shows good correlation with Bi, moderate with Te/W',date_key:'2025-12-10'},
+          {n:4,date:'Oct 21, 2025',text:'Regional discoveries: Manta up to 31 g/t Au (surface), Calypso >10 g/t Au (talus, 800m anomaly avg 0.162 ppm Au), Ogre 1.5km Au-Bi-Te-As anomaly',date_key:'2025-10-21'},
+          {n:5,date:null,         text:'Total 2025 campaign: 5,000m across 10 holes. Company candidly states 2025 drilling tested the wrong intrusive phase/structural setting for high-grade BiTe mineralization \u2014 2026 plan is remapping before redrill'}
+        ]
+      },
+      'Lentung':{
+        rangeStart:'2025-12-01',futureMonths:9,
+        revisions:[{date:'2026-05-26',note:'Rev 1 \u2014 2026 drill program underway, assay results still pending'}],
+        events:[
+          {n:1,type:'past',date:'2026-01-20',text:'Lentung property (19,600 ha, 100% owned, formerly "Lened") acquired by staking',link:'https://racklametals.com/rackla-summarizes-2025-exploration-results-and-plans-for-2026/'},
+          {n:2,type:'past',date:'2026-03-30',text:'Historical Union Carbide dataset digitized: 26,900m/178 holes, 15 tungsten occurrences over 15km strike, avg mill grade 1.14% WO\u2083',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2593-tsx-venture/rak/200191-rackla-provides-update-on-lentung-tungsten-property-data-compilation-and-2026-exploration-program.html'},
+          {n:3,type:'past',date:'2026-05-21',text:'Final 5-year Type A land use permit received \u2014 49-person camp, drilling, trail/access work all authorized',link:'https://aheadoftheherd.com/racklas-lentung-project-now-fully-permitted-for-2026-exploration-richard-mills/'},
+          {n:4,type:'past',date:'2026-05-26',text:'2026 field program commenced \u2014 10,000m program: 4,000m twinning 27 historical holes + 6,000m RC drilling',link:'https://mining.com.au/rackla-fully-permitted-at-lentung/'},
+          {n:5,type:'future',date:null,estDate:'2026-08-15',overdue:false,text:'First 2026 Lentung assay results \u2014 no firm date given, program ongoing as of late June 2026',link:null},
+          {n:6,type:'milestone',date:null,estDate:'2026-10-15',overdue:false,text:'MILESTONE: Resource calculation targeted by end of 2026 season',link:null}
+        ],
+        results:[
+          {n:1,date:'Mar 30, 2026',text:'Historical: 26,900m / 178 holes (Union Carbide, 1977\u20131982). 15 tungsten occurrences over 15km strike. Avg historical mill grade 1.14% WO\u2083 \u2014 historical resource only calculated for 3 of 15 occurrences',date_key:'2026-03-30'},
+          {n:2,date:null,         text:'2026 program in progress: twinning 27 historical holes (4,000m) to bring results to modern NI 43-101 standard, plus 6,000m RC drilling on known occurrences. No new assays released yet'}
+        ]
+      },
+      'Corporate':{
+        rangeStart:'2025-01-01',futureMonths:6,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2025-04-24',text:'Completed PP financing \u2014 $2.99M raised',link:'https://racklametals.com/news/'},
+          {n:2,type:'past',date:'2026-04-22',text:'Announced up to $3.44M non-brokered PP (charity flow-through units)',link:'https://racklametals.com/rackla-metals-announces-up-to-3-44-million-non-brokered-private-placement/'},
+          {n:3,type:'past',date:'2026-05-25',text:'Closed $3.44M PP @ $0.215/unit \u2014 cash position now ~$13M',link:'https://racklametals.com/rackla-metals-completes-private-placement-financing-raising-3-44-million/'}
+        ],
+        results:[{n:1,date:null,text:'No exploration results \u2014 corporate-level events only'}]
+      }
+    },
+    portfolio:[
+      {name:'Grad',loc:'Western Northwest Territories, Tombstone Gold Belt \u2014 5,525 ha, 5 claims',stage:'10 holes drilled (5,000m) 2025. Best: 10.5m @ 2.56 g/t Au. Results "did not meet expectations" \u2014 company believes wrong intrusive phase tested. No M/I/I. Regional discoveries at Manta, Calypso, Ogre pending follow-up.',tag:'confirmed'},
+      {name:'Lentung',loc:'Western NWT, Tombstone Tungsten Belt \u2014 19,600 ha, ~60km from past-producing Cantung mine',stage:'Historical: 26,900m/178 holes (Union Carbide), 15 tungsten occurrences, avg 1.14% WO\u2083. 2026 drill program (10,000m) underway as of late May. No current NI 43-101 resource \u2014 historical estimate only covers 3 of 15 occurrences.',tag:'confirmed'}
+    ]
+  },
+
+  ANDC: {
+    name: 'Andina Copper',
+    exchange: 'TSXV',
+    presentationUrl: 'https://andinacopper.com/investors/',
+    color: '#b45309',
+    catalysts: [
+      {symbol:'ANDC',project:'Corporate',title:'Rebrand: Pampa Metals Corp → Andina Copper Corp',type:'Milestone',confidence:'Confirmed',date:'2025-08-01',sourceType:'Company PR',link:'https://andinacopper.com/',notes:'Name change reflects copper-focused multi-project pivot'},
+      {symbol:'ANDC',project:'Corporate',title:'Rugby Resources arrangement completed; Bryce Roxburgh appointed Director',type:'Milestone',confidence:'Confirmed',date:'2025-07-25',sourceType:'Company PR',link:'https://andinacopper.com/',notes:''},
+      {symbol:'ANDC',project:'Corporate',title:'Tony Manini appointed Chairman; Paola Brewster appointed Non-Executive Director',type:'Employee',confidence:'Confirmed',date:'2025-07-29',sourceType:'Company PR',link:'https://andinacopper.com/',notes:''},
+      {symbol:'ANDC',project:'Piuquenes',title:'PIU-06 (Piuquenes East maiden hole): 208m @ 0.31% Cu, 0.13 g/t Au, 1.24 g/t Ag from 292m incl. 98m @ 0.49% Cu',type:'Milestone',confidence:'Confirmed',date:'2025-04-30',sourceType:'Company PR',link:'https://andinacopper.com/',notes:'Historic PIU-03 (Central): 801m @ 0.40% Cu, 0.51 g/t Au'},
+      {symbol:'ANDC',project:'Cobrasco',title:'Field mobilization commenced at Cobrasco, Chocó, Colombia',type:'Milestone',confidence:'Confirmed',date:'2025-10-01',sourceType:'Company PR',link:'https://andinacopper.com/',notes:'Cu-Mo porphyry target'},
+      {symbol:'ANDC',project:'Corporate',title:'Commenced trading on TSX-V under ANDC (moved from CSE)',type:'Milestone',confidence:'Confirmed',date:'2025-11-20',sourceType:'Company PR',link:'https://www.thenewswire.com/press-releases/1Bb4FvPGO-andina-copper-commences-trading-on-tsx-v.html',notes:'Also FSE:FIR, OTCQB:PMMCF'},
+      {symbol:'ANDC',project:'Piuquenes',title:'2025-26 program: 3,000m drilling, 600-sample soil grid, MT + IP surveys across 2,500 ha',type:'Milestone',confidence:'Confirmed',date:'2025-12-16',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/193435-andina-copper-accelerates-exploration-at-piuquenes-argentina.html',notes:'CEO: catalyst rich period across all 3 projects in 2026'},
+      {symbol:'ANDC',project:'Corporate',title:'Gustavo Zulliger appointed Principal Consulting Geologist',type:'Employee',confidence:'Confirmed',date:'2026-01-12',sourceType:'Company PR',link:'https://andinacopper.com/',notes:''},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH003 maiden hole: 352m @ 0.68% Cu, 112ppm Mo from 144m incl. 118m @ 1.17% Cu, 193ppm Mo from 246m',type:'Milestone',confidence:'Confirmed',date:'2026-02-05',sourceType:'Company PR',link:'https://www.thenewswire.com/press-releases/1Av7FO1Vj-andina-copper-intersects-352-m-0-68-cu-112-ppm-mo-from-144-m-incl-118-m-1-17-cu-193-ppm-mo-from-246-m.html',notes:'CEO: validates Cobrasco as globally significant Cu-Mo porphyry'},
+      {symbol:'ANDC',project:'Piuquenes',title:'PIU09 completed (799.5m); MT defines Piuquenes North anomaly 800m x 700m; 2nd rig mobilized',type:'News',confidence:'Confirmed',date:'2026-02-10',sourceType:'Company PR',link:'https://www.thenewswire.com/press-releases/1A0vFdP05-andina-copper-provides-exploration-update-at-piuquenes.html',notes:'PIU10A also drilling; PIU09 assays pending'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH004: 620m @ 0.46% Cu, 79ppm Mo from 62m',type:'Milestone',confidence:'Confirmed',date:'2026-02-16',sourceType:'Company PR',link:'https://andinacopper.com/',notes:'CDH005 completed, assays pending'},
+      {symbol:'ANDC',project:'Corporate',title:'Closed PP under Listed Issuer Financing Exemption',type:'News',confidence:'Confirmed',date:'2026-03-12',sourceType:'Company PR',link:'https://andinacopper.com/',notes:''},
+      {symbol:'ANDC',project:'Piuquenes',title:'PIU09 assays: 126m @ 0.46% Cu, 0.53 g/t Au, 2.14 g/t Ag within 402m from 517m - confirms gold-rich porphyry at East',type:'Milestone',confidence:'Confirmed',date:'2026-03-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/199449-andina-copper-intersects-126-m-at-0-46-cu-0-53-g-t-au-2-14-g-t-ag-within-wide-cu-au-ag-interval-at-piuquenes-east.html',notes:'PIU11 step-out underway; PIU12 testing North MT anomaly'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH005: 454m @ 0.43% Cu incl. 198m @ 0.51% Cu, 78ppm Mo - southern extension confirmed',type:'Milestone',confidence:'Confirmed',date:'2026-03-24',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/199853-andina-copper-extension-drilling-intersects-198-m-at-0-51-cu-78-ppm-mo-within-454-m-at-0-43-cu-66-ppm-mo.html',notes:'CDH006/007 completed, assays pending'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH006: 232m @ 0.68% Cu, 75ppm Mo, 2 g/t Ag from 38m - NW step-out near-surface hit',type:'Milestone',confidence:'Confirmed',date:'2026-04-14',sourceType:'Company PR',link:'https://andinacopper.com/',notes:'New drill pad ~400m NW of CDH002-005'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH007: 292m @ 0.48% Cu, 62ppm Mo, 1.7 g/t Ag from 44m - footprint 1,000m x 500m open all directions',type:'Milestone',confidence:'Confirmed',date:'2026-04-21',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/201612-andina-copper-intersects-292m-at-0-48-cu-from-44m.html',notes:'CDH008/009 pending; 2nd rig prep underway'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH008: 272m @ 0.50% Cu incl. 152m @ 0.67% Cu from 54m - northern extension; footprint 1,100m x 550m',type:'Milestone',confidence:'Confirmed',date:'2026-05-13',sourceType:'Company PR',link:'https://www.thenewswire.com/press-releases/1AMqFzVJV-andina-copper-intersects-152m-at-0-67-cu-from-54m-within-272m-at-0-50-cu.html',notes:'CDH009 completed, CDH010 in progress'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH009: 502m @ 0.40% Cu incl. 186m @ 0.50% Cu from 38m - footprint 1,200m x 550m; CDH010/011 done, assays pending',type:'Milestone',confidence:'Confirmed',date:'2026-06-24',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/206056-andina-copper-intersects-186m-at-0-50-cu-from-38m-within-502m-at-0-40-cu-extends-shallow-mineralization-to-the-nw.html',notes:'New platform ~350m NW; 2nd rig mobilizing'},
+      {symbol:'ANDC',project:'Cobrasco',title:'CDH010 + CDH011 assay results pending - visual logging confirms mineralization in both',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-24',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/206056-andina-copper-intersects-186m-at-0-50-cu-from-38m-within-502m-at-0-40-cu-extends-shallow-mineralization-to-the-nw.html',notes:'Rev1 Jun 24 2026'},
+      {symbol:'ANDC',project:'Piuquenes',title:'PIU10A, PIU11, PIU12 (Piuquenes North MT anomaly) assay results pending',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-03-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/199449-andina-copper-intersects-126-m-at-0-46-cu-0-53-g-t-au-2-14-g-t-ag-within-wide-cu-au-ag-interval-at-piuquenes-east.html',notes:'Rev1 Mar 17 2026 - 3 holes pending'}
+    ],
+    projectDefs: {
+      'Cobrasco': {
+        rangeStart:'2025-10-01', futureMonths:6,
+        revisions:[{date:'2026-06-24',note:'Rev 1 - CDH009 results in; CDH010/011 done, assays pending; 2nd rig mobilizing'}],
+        events:[
+          {n:1, type:'past',date:'2025-10-01',text:'Field mobilization commenced at Cobrasco, Choco, Colombia',link:'https://andinacopper.com/'},
+          {n:2, type:'past',date:'2026-02-05',text:'CDH003 maiden hole: 352m @ 0.68% Cu, 112ppm Mo from 144m incl. 118m @ 1.17% Cu, 193ppm Mo from 246m',link:'https://www.thenewswire.com/press-releases/1Av7FO1Vj-andina-copper-intersects-352-m-0-68-cu-112-ppm-mo-from-144-m-incl-118-m-1-17-cu-193-ppm-mo-from-246-m.html'},
+          {n:3, type:'past',date:'2026-02-16',text:'CDH004: 620m @ 0.46% Cu, 79ppm Mo from 62m',link:'https://andinacopper.com/'},
+          {n:4, type:'past',date:'2026-03-24',text:'CDH005: 454m @ 0.43% Cu incl. 198m @ 0.51% Cu, 78ppm Mo - southern extension confirmed',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/199853-andina-copper-extension-drilling-intersects-198-m-at-0-51-cu-78-ppm-mo-within-454-m-at-0-43-cu-66-ppm-mo.html'},
+          {n:5, type:'past',date:'2026-04-14',text:'CDH006: 232m @ 0.68% Cu, 75ppm Mo, 2 g/t Ag from 38m - NW pad ~400m from original',link:'https://andinacopper.com/'},
+          {n:6, type:'past',date:'2026-04-21',text:'CDH007: 292m @ 0.48% Cu, 62ppm Mo, 1.7 g/t Ag from 44m - footprint 1,000m x 500m',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/201612-andina-copper-intersects-292m-at-0-48-cu-from-44m.html'},
+          {n:7, type:'past',date:'2026-05-13',text:'CDH008: 272m @ 0.50% Cu incl. 152m @ 0.67% Cu from 54m - northern extension; footprint 1,100m x 550m',link:'https://www.thenewswire.com/press-releases/1AMqFzVJV-andina-copper-intersects-152m-at-0-67-cu-from-54m-within-272m-at-0-50-cu.html'},
+          {n:8, type:'past',date:'2026-06-24',text:'CDH009: 502m @ 0.40% Cu incl. 186m @ 0.50% Cu from 38m - footprint 1,200m x 550m; 9/9 holes hit',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/206056-andina-copper-intersects-186m-at-0-50-cu-from-38m-within-502m-at-0-40-cu-extends-shallow-mineralization-to-the-nw.html'},
+          {n:9, type:'future',date:null,estDate:'2026-07-20',overdue:false,text:'CDH010 assay results - visual logging confirms mineralization from NW pad',link:null},
+          {n:10,type:'future',date:null,estDate:'2026-07-27',overdue:false,text:'CDH011 assay results - visual logging confirms mineralization from NW pad',link:null},
+          {n:11,type:'future',date:null,estDate:'2026-08-15',overdue:false,text:'2nd drill rig operational - accelerated infill + new porphyry center testing',link:null},
+          {n:12,type:'milestone',date:null,estDate:'2026-10-01',overdue:false,text:'MILESTONE: Resource estimate initiation - footprint and grade sufficient; 2nd rig to define volume',link:null}
+        ],
+        results:[
+          {n:1,date:'Feb 5, 2026', text:'CDH003: 352m @ 0.68% Cu, 112ppm Mo from 144m incl. 118m @ 1.17% Cu - chalcopyrite dominant, potassic alteration',date_key:'2026-02-05'},
+          {n:2,date:'Feb 16, 2026',text:'CDH004: 620m @ 0.46% Cu, 79ppm Mo from 62m - longest interval at time of release',date_key:'2026-02-16'},
+          {n:3,date:'Mar 24, 2026',text:'CDH005: 454m @ 0.43% Cu incl. 198m @ 0.51% Cu, 78ppm Mo - phreatomagmatic breccias define SW limit',date_key:'2026-03-24'},
+          {n:4,date:'Apr 14, 2026',text:'CDH006: 232m @ 0.68% Cu, 75ppm Mo, 2 g/t Ag from 38m - NW pad; near-surface start',date_key:'2026-04-14'},
+          {n:5,date:'Apr 21, 2026',text:'CDH007: 292m @ 0.48% Cu, 62ppm Mo, 1.7 g/t Ag from 44m. Bornite at depth. Footprint: 1,000m x 500m',date_key:'2026-04-21'},
+          {n:6,date:'May 13, 2026',text:'CDH008: 272m @ 0.50% Cu incl. 152m @ 0.67% Cu from 54m - hydrothermal breccias highest grades. Footprint: 1,100m x 550m',date_key:'2026-05-13'},
+          {n:7,date:'Jun 24, 2026',text:'CDH009: 502m @ 0.40% Cu incl. 186m @ 0.50% Cu, 1.48 g/t Ag from 38m - mineralization to 954m depth. Footprint: 1,200m x 550m. 9/9 hit.',date_key:'2026-06-24'},
+          {n:8,date:null,text:'No NI 43-101 resource estimate yet - scout drilling phase. All 9 reported holes hit near-surface Cu-Mo from ~40m depth.'}
+        ]
+      },
+      'Piuquenes': {
+        rangeStart:'2025-04-01', futureMonths:9,
+        revisions:[{date:'2026-03-17',note:'Rev 1 - PIU09 assays in; PIU10A/11/12 pending; North MT target untested'}],
+        events:[
+          {n:1,type:'past',date:'2025-04-30',text:'PIU-06 (East maiden hole): 208m @ 0.31% Cu, 0.13 g/t Au, 1.24 g/t Ag from 292m incl. 98m @ 0.49% Cu',link:'https://andinacopper.com/'},
+          {n:2,type:'past',date:'2025-12-16',text:'2025-26 program: 3,000m drilling, 600-sample soil grid (100m x 100m), MT survey (116 stations), IP survey (5 lines, 7 line-km)',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/193435-andina-copper-accelerates-exploration-at-piuquenes-argentina.html'},
+          {n:3,type:'past',date:'2026-02-10',text:'PIU09 completed (799.5m); MT defines Piuquenes North anomaly (800m x 700m, starts ~600m depth); 2nd rig mobilized',link:'https://www.thenewswire.com/press-releases/1A0vFdP05-andina-copper-provides-exploration-update-at-piuquenes.html'},
+          {n:4,type:'past',date:'2026-03-17',text:'PIU09: 126m @ 0.46% Cu, 0.53 g/t Au, 2.14 g/t Ag within 402m from 517m - gold-rich porphyry confirmed at East; Au grades increase with depth',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2974-tsx-venture/andc/199449-andina-copper-intersects-126-m-at-0-46-cu-0-53-g-t-au-2-14-g-t-ag-within-wide-cu-au-ag-interval-at-piuquenes-east.html'},
+          {n:5,type:'future',date:null,estDate:'2026-08-01',overdue:false,text:'PIU10A assay results - testing target between Piuquenes East and Central zones',link:null},
+          {n:6,type:'future',date:null,estDate:'2026-08-15',overdue:false,text:'PIU11 assay results - key step-out to assess East porphyry scale',link:null},
+          {n:7,type:'future',date:null,estDate:'2026-09-01',overdue:false,text:'PIU12 assay results - testing Piuquenes North MT anomaly (starts ~600m below surface)',link:null},
+          {n:8,type:'milestone',date:null,estDate:'2026-11-01',overdue:false,text:'MILESTONE: Piuquenes resource update - Central + East + North if PIU12 confirms; adjacent to Aldebaran Altar (PEA stage)',link:null}
+        ],
+        results:[
+          {n:1,date:'Apr 30, 2025',text:'PIU-06 (East): 208m @ 0.31% Cu, 0.13 g/t Au, 1.24 g/t Ag from 292m incl. 98m @ 0.49% Cu - maiden East hole',date_key:'2025-04-30'},
+          {n:2,date:'Mar 17, 2026',text:'PIU09 (East): 126m @ 0.46% Cu, 0.53 g/t Au, 2.14 g/t Ag within 402m from 517m. Au grades increasing with depth. A+B veining intensifying. Upper portion of vertically extensive system.',date_key:'2026-03-17'},
+          {n:3,date:null,text:'Historical PIU-03 (Central): 801m @ 0.40% Cu, 0.51 g/t Au incl. 518m @ 0.53% Cu, 0.73 g/t Au - largest single intercept in portfolio'},
+          {n:4,date:null,text:'PIU-08 (Central): 570m @ 0.39% Cu, 0.24 g/t Au incl. 298m @ 0.54% Cu, 0.39 g/t Au. No NI 43-101 resource across any zone.'}
+        ]
+      },
+      'Corporate': {
+        rangeStart:'2025-07-01', futureMonths:6,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2025-07-25',text:'Rugby Resources arrangement completed; Bryce Roxburgh appointed Director',link:'https://andinacopper.com/'},
+          {n:2,type:'past',date:'2025-07-29',text:'Tony Manini appointed Chairman; Paola Brewster appointed Non-Executive Director',link:'https://andinacopper.com/'},
+          {n:3,type:'past',date:'2025-08-01',text:'Company rebrands: Pampa Metals Corp to Andina Copper Corp',link:'https://andinacopper.com/'},
+          {n:4,type:'past',date:'2025-11-20',text:'Commenced trading on TSX-V under ANDC; also FSE:FIR, OTCQB:PMMCF',link:'https://www.thenewswire.com/press-releases/1Bb4FvPGO-andina-copper-commences-trading-on-tsx-v.html'},
+          {n:5,type:'past',date:'2026-01-12',text:'Gustavo Zulliger appointed Principal Consulting Geologist',link:'https://andinacopper.com/'},
+          {n:6,type:'past',date:'2026-03-12',text:'Closed PP under Listed Issuer Financing Exemption',link:'https://andinacopper.com/'}
+        ],
+        results:[{n:1,date:null,text:'No exploration results - corporate-level events only'}]
+      }
+    },
+    portfolio:[
+      {name:'Cobrasco',loc:'Choco Department, Colombia - core cutting facility in Quibdo',stage:'9 holes reported (all hit). Footprint: 1,200m x 550m, open all directions. Best: CDH003 incl. 118m @ 1.17% Cu from 246m. Near-surface start (~40m). No NI 43-101 resource yet. 2nd rig mobilizing.',tag:'confirmed'},
+      {name:'Piuquenes',loc:'San Juan Province, Argentina - 2,500 ha, adjacent north of Aldebaran Altar porphyry (PEA stage)',stage:'3 zones: Central, East, North (MT target, untested). Historic PIU-03: 801m @ 0.40% Cu, 0.51 g/t Au. East gold-rich porphyry confirmed. No NI 43-101 resource. Belt includes El Pachon (Glencore), Los Pelambres (Antofagasta).',tag:'speculative'},
+      {name:'Mantau',loc:'Antofagasta Region, Chile - Cu-Au early stage',stage:'Exploration results confirmed late 2025. Field program commenced early 2026. No drill results yet. No M/I/I.',tag:'speculative'}
+    ]
+  },
+
+  CGNT: {
+    name: 'Copper Giant Resources',
+    exchange: 'TSXV',
+    presentationUrl: 'https://www.coppergiant.co/documents/CGNT-Corporate-Presentation-MAY-2026.pdf',
+    color: '#065f46',
+    catalysts: [
+      {symbol:'CGNT',project:'Corporate',title:'Renamed from Libero Copper & Gold to Copper Giant Resources Corp.',type:'Milestone',confidence:'Confirmed',date:'2025-04-01',sourceType:'Company PR',link:'https://www.coppergiant.co/',notes:'Formerly LBCMF on OTCQB; reflects copper-focused development pivot'},
+      {symbol:'CGNT',project:'Mocoa',title:'Public offering C$5M @ $0.28/unit via Red Cloud Securities',type:'News',confidence:'Confirmed',date:'2025-10-30',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/190455-copper-giant-announces-public-offering-of-units-for-gross-proceeds-of-up-to-c-5-million-2.html',notes:''},
+      {symbol:'CGNT',project:'Mocoa',title:'Updated MRE: 1.12 Bt Inferred @ 0.51% CuEq = 12.7 Blbs CuEq (0.31% Cu, 0.039% Mo) - exceeds 1Bt mark; La Estrella included for first time',type:'Milestone',confidence:'Confirmed',date:'2025-11-24',sourceType:'NI 43-101',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/copper-giant-resources.html',notes:'Molybdenum designated US critical mineral; one of largest undeveloped Mo systems globally'},
+      {symbol:'CGNT',project:'Corporate',title:'PP upsized to $12M (30M units @ $0.40/unit) - Frank Giustra lead order',type:'News',confidence:'Confirmed',date:'2025-12-23',sourceType:'Company PR',link:'https://resourceworld.com/copper-giant-raising-12-million-from-upsized-financing/',notes:'Frank Giustra holds 12.55%'},
+      {symbol:'CGNT',project:'Corporate',title:'NI 43-101 technical report filed for updated MRE',type:'Milestone',confidence:'Confirmed',date:'2026-01-09',sourceType:'NI 43-101',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/copper-giant-resources.html',notes:''},
+      {symbol:'CGNT',project:'Corporate',title:'PP closed - $12M raised; Frank Giustra and Ian Harris insider buying confirmed',type:'Milestone',confidence:'Confirmed',date:'2026-01-14',sourceType:'Company PR',link:'https://www.theglobeandmail.com/investing/markets/stocks/CGNT-X/',notes:'Cash position C$23M; 2026 fully funded'},
+      {symbol:'CGNT',project:'Mocoa',title:'MD-054: 61m @ 0.61% CuEq within 253m @ 0.40% CuEq from 367m - exceeds MRE grade in waste-classified area at southern edge',type:'Milestone',confidence:'Confirmed',date:'2026-01-29',sourceType:'Company PR',link:'https://www.streetwisereports.com/article/2026/02/02/drilling-past-the-model-copper-grades-break-out-at-the-edge-of-a-billion-tonne-system.html',notes:'MD-053 (La Estrella): 117m @ 0.07% CuEq - lower grade but confirms porphyry extension'},
+      {symbol:'CGNT',project:'Mocoa',title:'2026 exploration plan: 23,000m directional drilling (+80% vs 2025) - largest Mocoa program ever; objectives: expand MRE, test district targets, convert Inferred to Indicated',type:'Milestone',confidence:'Confirmed',date:'2026-02-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/197351-copper-giant-announces-the-2026-exploration-plan-targeting-23-000-metres-of-drilling-the-largest-drilling-program-in-the-history-of-the-mocoa-project.html',notes:'Aziwell Colombia engaged for precision directional drilling'},
+      {symbol:'CGNT',project:'Mocoa',title:'Third drill rig mobilized - 3 rigs now active; MD-060: 285m @ 0.61% CuEq incl. 68m @ 0.97% CuEq (0.70% Cu, 0.051% Mo) - beats MRE model',type:'Milestone',confidence:'Confirmed',date:'2026-04-08',sourceType:'Company PR',link:'https://www.newswire.ca/news-releases/copper-giant-s-first-directional-daughter-holes-beat-resource-model-at-mocoa-returning-0-97-cueq-0-70-cu-and-0-051-mo-over-68m-within-371m-of-0-53-cueq-0-40-cu-and-0-02-mo-while-continuing-to-identify-higher-grades-at-the-southern-margin-of-815433249.html',notes:'MD-058: extends southern margin into connector zone toward La Estrella'},
+      {symbol:'CGNT',project:'Corporate',title:'Colombian National Mining Agency approved title integration FJT-131 + FJT-141 into single unified concession - long-term development framework secured',type:'Milestone',confidence:'Confirmed',date:'2026-04-28',sourceType:'Company PR',link:'https://simplywall.st/stocks/ca/materials/tsxv-cgnt/copper-giant-resources-shares',notes:'No forestry/protected area overlap; MRE fully contained within concession; concession term reset'},
+      {symbol:'CGNT',project:'Mocoa',title:'PEA commenced - 4-phase approach targeting H2 2026 delivery; globally recognized development team engaged',type:'Milestone',confidence:'Confirmed',date:'2026-05-05',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/copper-giant-resources.html',notes:'Phase 1: Q2 data review; Phase 2: Q2-Q3 trade-off studies; Phase 3: Q3 engineering model; Phase 4: Q4 reporting'},
+      {symbol:'CGNT',project:'Mocoa',title:'MD-062: 258m @ 0.70% CuEq (0.38% Cu, 0.06% Mo) - above MRE average; MD-061: 291m @ 0.50% CuEq extends connector zone southward',type:'Milestone',confidence:'Confirmed',date:'2026-05-20',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/203764-copper-giant-expands-mocoa-resource-footprint-and-advances-connector-zone-toward-the-la-estrella-with-three-drill-rigs-turning.html',notes:'3 rigs turning; connector zone between Mocoa and La Estrella advancing'},
+      {symbol:'CGNT',project:'Mocoa',title:'MD-064: 1,052m continuous mineralization incl. 486m @ 0.57% CuEq - deep infill below conceptual pit. MD-063: confirms THIRD mineralized breccia corridor (180m @ 0.44% CuEq)',type:'Milestone',confidence:'Confirmed',date:'2026-06-22',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/205895-copper-giant-extends-mineralization-below-the-conceptual-pit-at-mocoa-and-confirms-a-third-mineralized-corridor.html',notes:'Mocoa now has 3 confirmed breccia corridors - consistent with multi-phase multi-center porphyry system'},
+      {symbol:'CGNT',project:'Corporate',title:'AGM held Vancouver',type:'Event',confidence:'Confirmed',date:'2026-06-24',sourceType:'Company PR',link:'https://www.coppergiant.co/',notes:''},
+      {symbol:'CGNT',project:'Mocoa',title:'Continued drill results from 23,000m program - 3 rigs turning, monthly cadence expected',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-22',sourceType:'Company PR',link:'https://www.coppergiant.co/',notes:'Rev1 Jun 22 2026 - ongoing program'},
+      {symbol:'CGNT',project:'Mocoa',title:'Updated MRE incorporating 2026 drilling - 30-50% potential Inferred to Indicated conversion',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-22',sourceType:'Company PR',link:'https://www.coppergiant.co/',notes:'Timing TBD - expected H2 2026 alongside PEA inputs'},
+      {symbol:'CGNT',project:'Corporate',title:'Colombian presidential elections - flagged by company as key risk event; Petro era mining policy at stake',type:'Event',confidence:'Confirmed',date:'2026-08-01',sourceType:'Company PR',link:'https://www.coppergiant.co/investors',notes:'Political risk: outcome directly affects permitting/development timeline for Colombian assets'},
+      {symbol:'CGNT',project:'Mocoa',title:'PEA delivery - Phase 4 Q4 2026; includes mine plan, process design, capex/opex estimates, economic model',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-10-01',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/copper-giant-resources.html',notes:'Rev1 May 5 2026 - H2 2026 target with flexibility to incorporate ongoing 2026 drill results'}
+    ],
+    projectDefs: {
+      'Mocoa': {
+        rangeStart:'2025-10-01', futureMonths:9,
+        revisions:[
+          {date:'2026-05-05',note:'Rev 1 - PEA commenced; 3 rigs active; 23,000m program underway'},
+          {date:'2026-06-22',note:'Rev 2 - third breccia corridor confirmed; MD-064: 1,052m continuous mineralization'}
+        ],
+        events:[
+          {n:1, type:'past',date:'2025-11-24',text:'Updated MRE: 1.12 Bt Inferred @ 0.51% CuEq = 12.7 Blbs CuEq — exceeds 1Bt; La Estrella included for first time',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/copper-giant-resources.html'},
+          {n:2, type:'past',date:'2026-01-29',text:'MD-054: 61m @ 0.61% CuEq within 253m @ 0.40% CuEq — exceeds resource model grade in previously waste-classified area at southern edge',link:'https://www.streetwisereports.com/article/2026/02/02/drilling-past-the-model-copper-grades-break-out-at-the-edge-of-a-billion-tonne-system.html'},
+          {n:3, type:'past',date:'2026-02-17',text:'2026 plan: 23,000m directional drilling (+80% vs 2025); objectives: expand MRE, test district targets, convert Inferred to Indicated',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/197351-copper-giant-announces-the-2026-exploration-plan-targeting-23-000-metres-of-drilling-the-largest-drilling-program-in-the-history-of-the-mocoa-project.html'},
+          {n:4, type:'past',date:'2026-04-08',text:'Third rig mobilized (3 active); MD-060: 285m @ 0.61% CuEq incl. 68m @ 0.97% CuEq — best interval to date, exceeds MRE model',link:'https://www.newswire.ca/news-releases/copper-giant-s-first-directional-daughter-holes-beat-resource-model-at-mocoa-returning-0-97-cueq-0-70-cu-and-0-051-mo-over-68m-within-371m-of-0-53-cueq-0-40-cu-and-0-02-mo-while-continuing-to-identify-higher-grades-at-the-southern-margin-of-815433249.html'},
+          {n:5, type:'past',date:'2026-04-28',text:'Colombian NMA approves title integration FJT-131+141 into single concession — long-term development framework secured; no forestry overlap',link:'https://simplywall.st/stocks/ca/materials/tsxv-cgnt/copper-giant-resources-shares'},
+          {n:6, type:'past',date:'2026-05-05',text:'PEA commenced — 4-phase approach: Q2 data review, Q2-Q3 trade-off studies, Q3 engineering model, Q4 2026 delivery',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/copper-giant-resources.html'},
+          {n:7, type:'past',date:'2026-05-20',text:'MD-062: 258m @ 0.70% CuEq (0.38% Cu, 0.06% Mo) — above MRE average; confirms higher-grade domains ahead of PEA',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/203764-copper-giant-expands-mocoa-resource-footprint-and-advances-connector-zone-toward-the-la-estrella-with-three-drill-rigs-turning.html'},
+          {n:8, type:'past',date:'2026-06-22',text:'MD-064: 1,052m continuous mineralization incl. 486m @ 0.57% CuEq — below conceptual pit, deep system confirmed. MD-063: third breccia corridor (180m @ 0.44% CuEq)',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2126-tsx-venture/cgnt/205895-copper-giant-extends-mineralization-below-the-conceptual-pit-at-mocoa-and-confirms-a-third-mineralized-corridor.html'},
+          {n:9, type:'future',date:null,estDate:'2026-08-01',overdue:false,text:'Colombian presidential elections — new government could accelerate or derail permitting/development; flagged by company as key risk event',link:null},
+          {n:10,type:'future',date:null,estDate:'2026-09-01',overdue:false,text:'Updated MRE incorporating 2026 drilling — 30-50% potential Inferred to Indicated conversion; feeds into PEA inputs',link:null},
+          {n:11,type:'milestone',date:null,estDate:'2026-10-15',overdue:false,text:'MILESTONE: PEA delivery — includes mine plan, process design, capex/opex, economic model; NI 43-101 compliant',link:null}
+        ],
+        results:[
+          {n:1,date:'Nov 24, 2025',text:'MRE (NI 43-101): 1.12 Bt ALL Inferred @ 0.51% CuEq (0.31% Cu, 0.039% Mo) = 12.7 Blbs CuEq. Mineralization surface to >1,100m depth. Fully within integrated concession.',date_key:'2025-11-24'},
+          {n:2,date:'Jan 29, 2026',text:'MD-054: 61m @ 0.61% CuEq within 253m @ 0.40% CuEq from 367m — exceeds MRE model in previously waste-classified southern edge domain',date_key:'2026-01-29'},
+          {n:3,date:'Apr 8-14, 2026',text:'MD-058/059/060: MD-060 best interval 68m @ 0.97% CuEq (0.70% Cu, 0.051% Mo) within 285m @ 0.61% CuEq — above MRE average grade, ends in mineralization',date_key:'2026-04-08'},
+          {n:4,date:'May 20, 2026',text:'MD-061/062: MD-062 258m @ 0.70% CuEq above MRE average; MD-061 291m @ 0.50% CuEq extends connector zone southward',date_key:'2026-05-20'},
+          {n:5,date:'Jun 22, 2026',text:'MD-064: 1,052m continuous mineralization incl. 486m @ 0.57% CuEq — deepest infill to date, below conceptual pit design. MD-063: 180m @ 0.44% CuEq confirms THIRD breccia corridor. Multi-center porphyry system now confirmed.',date_key:'2026-06-22'},
+          {n:6,date:null,text:'All drilling consistently at or above MRE average (0.51% CuEq). No misses to date. 30-50% Inferred-to-Indicated conversion targeted in 2026. Note: ALL resource is Inferred — no Measured or Indicated category yet.'}
+        ]
+      },
+      'Corporate': {
+        rangeStart:'2025-04-01', futureMonths:6,
+        revisions:[],
+        events:[
+          {n:1,type:'past',date:'2025-04-01',text:'Renamed from Libero Copper & Gold to Copper Giant Resources Corp.',link:'https://www.coppergiant.co/'},
+          {n:2,type:'past',date:'2025-12-23',text:'PP upsized to $12M (30M units @ $0.40); Frank Giustra lead order',link:'https://resourceworld.com/copper-giant-raising-12-million-from-upsized-financing/'},
+          {n:3,type:'past',date:'2026-01-14',text:'PP closed — $12M raised; Frank Giustra (12.55%) and Ian Harris buying; cash position C$23M',link:'https://www.theglobeandmail.com/investing/markets/stocks/CGNT-X/'},
+          {n:4,type:'past',date:'2026-06-24',text:'AGM held Vancouver',link:'https://www.coppergiant.co/'},
+          {n:5,type:'future',date:null,estDate:'2026-08-01',overdue:false,text:'Colombian presidential elections — political risk event; outcome affects entire Colombia-exposed portfolio',link:null}
+        ],
+        results:[{n:1,date:null,text:'No exploration results — corporate-level events only'}]
+      }
+    },
+    portfolio:[
+      {name:'Mocoa',loc:'Putumayo Department, Colombia — Jurassic porphyry belt (same belt as Mirador mine, Waritza deposit)',stage:'MRE (NI 43-101, Dec 2025): 1.12 Bt ALL Inferred @ 0.51% CuEq = 12.7 Blbs CuEq (7.7 Blbs Cu + 1.0 Blbs Mo). High-grade sub-domain: 190 Mt @ 0.94% CuEq (starter potential). Mineralization surface to >1,100m depth. 3 confirmed breccia corridors. 3 rigs active. PEA targeted Q4 2026.',tag:'confirmed'},
+      {name:'Esperanza',loc:'San Juan Province, Argentina — Cu-Au porphyry',stage:'Early-stage, no MRE, no recent drilling reported in 2025-2026.',tag:'speculative'},
+      {name:'Big Red',loc:'British Columbia, Canada — Cu porphyry',stage:'Early-stage, no MRE, no recent drilling reported in 2025-2026.',tag:'speculative'},
+      {name:'Cauca (Santa Rosa)',loc:'Colombia — Jurassic porphyry belt, Cauca-Putumayo region',stage:'Very early-stage. 12 mining concession applications only. No drilling.',tag:'speculative'}
+    ]
+  },
+
+  CANX: {
+    name: 'Canex Metals',
+    exchange: 'TSXV',
+    presentationUrl: 'https://canexmetals.ca/corporate/presentations/',
+    color: '#92400e',
+    catalysts: [
+      {symbol:'CANX',project:'Corporate',title:'$3M strategic financing closed - Eric Fier (mining industry leader, ~C$2.5B career shareholder value) lead investor at $0.15/share; becomes 10% insider',type:'Milestone',confidence:'Confirmed',date:'2025-12-23',sourceType:'Company PR',link:'https://investingnews.com/canex-metals-announces-3-million-strategic-financing-with-eric-fier-as-lead-investor-and-extends-its-offer-to-purchase-the-shares-of-gold-basin-resources/',notes:'Altius Minerals (ALS) remains large strategic shareholder'},
+      {symbol:'CANX',project:'Corporate',title:'NI 43-101 Technical Report filed for Gold Range Project, Arizona',type:'Milestone',confidence:'Confirmed',date:'2025-12-23',sourceType:'NI 43-101',link:'https://canexmetals.ca/news/',notes:'Technical report covers Gold Range; Gold Basin data compilation underway'},
+      {symbol:'CANX',project:'Gold Range + Gold Basin',title:'51.93% controlling interest in Gold Basin Resources acquired via hostile takeover bid (54% tendered)',type:'Milestone',confidence:'Confirmed',date:'2026-02-10',sourceType:'Company PR',link:'https://investingnews.com/canex-metals-announces-final-take-up-of-gold-basin-shares-and-expiry-of-successful-gold-basin-offer/',notes:'Gold Basin directly adjacent to Gold Range; combined district 42 km2 in Mohave County AZ'},
+      {symbol:'CANX',project:'Corporate',title:'Court-appointed Gold Basin AGM held - new board elected (Ebert, Ernst, Paterson, Robins, Ross); previous board replaced entirely',type:'Milestone',confidence:'Confirmed',date:'2026-03-16',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/878-tsx-venture/canx/199440-canex-announces-results-of-gold-basin-resources-corporation-annual-general-meeting.html',notes:'100% support at AGM for all resolutions'},
+      {symbol:'CANX',project:'Louise',title:'IP survey identifies 2 new high priority porphyry targets never drill tested - exploration permit in place',type:'Milestone',confidence:'Confirmed',date:'2025-06-01',sourceType:'Company PR',link:'https://canexmetals.ca/news/',notes:'Louise: historic 158m @ 0.41% Cu + 0.40 g/t Au from 53.5m; IP targets require drill permit amendment'},
+      {symbol:'CANX',project:'Gold Range + Gold Basin',title:'Arrangement Agreement to acquire remaining Gold Basin shares (0.592 CANX per GXX share) - approved 75.82% at special meeting Jun 4',type:'Milestone',confidence:'Confirmed',date:'2026-05-12',sourceType:'Company PR',link:'https://canexmetals.ca/news/',notes:'Charrua Capital settlement also reached May 6'},
+      {symbol:'CANX',project:'Gold Range + Gold Basin',title:'100% of Gold Basin acquired - CANX now controls complete contiguous gold district in northern Arizona',type:'Milestone',confidence:'Confirmed',date:'2026-06-10',sourceType:'Company PR',link:'https://investingnews.com/canex-acquires-100-of-gold-basin-resources/',notes:'BC Supreme Court final order Jun 9; >900 historic + current drill holes across combined property'},
+      {symbol:'CANX',project:'Gold Range + Gold Basin',title:'2026 surface program: Ring Bear 2.54 g/t Au over 13m incl. 6.46 g/t/2m (300x450m footprint); Golden Chalice 14.83 g/t Au/1m; West Chalice 12.15 g/t Au/2.7m - 3 new undrilled targets confirmed',type:'Milestone',confidence:'Confirmed',date:'2026-06-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/878-tsx-venture/canx/205645-canex-announces-surface-exploration-results-from-the-combined-gold-basin-and-gold-range-project-arizona.html',notes:'All 3 targets within 8km trend; eastern district (WestGold) already permitted; BLM permit for western (Cyclopic/Gold Basin) being prepared'},
+      {symbol:'CANX',project:'Gold Range + Gold Basin',title:'BLM Notice of Work permit application being prepared for Cyclopic, Ring Bear, Golden Chalice, West Chalice and western district targets',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/878-tsx-venture/canx/205645-canex-announces-surface-exploration-results-from-the-combined-gold-basin-and-gold-range-project-arizona.html',notes:'Rev1 Jun 17 2026 - submission imminent; BLM approval typically 3-6 months'},
+      {symbol:'CANX',project:'Gold Range + Gold Basin',title:'First drill program on combined district - eastern (WestGold/Gold Range) already permitted; targeting new undrilled zones + known deposit expansion',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-17',sourceType:'Company PR',link:'https://canexmetals.ca/news/',notes:'Rev1 Jun 17 2026 - no firm date; western permit pending BLM'},
+      {symbol:'CANX',project:'Louise',title:'Drill program at Louise - 2 IP-defined porphyry targets never drill tested; permit amendment required',type:'Forecasted Catalyst',confidence:'Speculative',date:'2025-06-01',sourceType:'Company PR',link:'https://canexmetals.ca/news/',notes:'Rev1 Jun 2025 - BC exploration permit in hand; drill amendment pending; no firm date'}
+    ],
+    projectDefs: {
+      'Gold Range + Gold Basin': {
+        rangeStart:'2025-06-01', futureMonths:12,
+        revisions:[
+          {date:'2026-02-10',note:'Rev 1 - 51.93% Gold Basin acquired; combined district now controlled'},
+          {date:'2026-06-10',note:'Rev 2 - 100% Gold Basin acquired; full district consolidation complete'},
+          {date:'2026-06-17',note:'Rev 3 - surface results confirm 3 new undrilled targets; BLM permit being prepared'}
+        ],
+        events:[
+          {n:1, type:'past',date:'2025-12-23',text:'$3M financing closed; Eric Fier lead at $0.15/share (10% insider); NI 43-101 technical report filed for Gold Range',link:'https://canexmetals.ca/news/'},
+          {n:2, type:'past',date:'2026-02-10',text:'51.93% controlling interest in Gold Basin acquired (hostile takeover bid); combined district 42 km2, >900 drill holes, 8km gold trend, Mohave County AZ',link:'https://investingnews.com/canex-metals-announces-final-take-up-of-gold-basin-shares-and-expiry-of-successful-gold-basin-offer/'},
+          {n:3, type:'past',date:'2026-03-16',text:'Court-appointed Gold Basin AGM held; new board elected 100% in support; previous board fully replaced; regulatory compliance path cleared',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/878-tsx-venture/canx/199440-canex-announces-results-of-gold-basin-resources-corporation-annual-general-meeting.html'},
+          {n:4, type:'past',date:'2026-06-10',text:'100% of Gold Basin acquired via Plan of Arrangement (0.592 CANX per GXX share); BC Supreme Court final order Jun 9; approved 75.82% at special meeting',link:'https://investingnews.com/canex-acquires-100-of-gold-basin-resources/'},
+          {n:5, type:'past',date:'2026-06-17',text:'Surface program: Ring Bear (2.54 g/t Au/13m, 300x450m), Golden Chalice (14.83 g/t Au/1m), West Chalice (12.15 g/t Au/2.7m) confirmed as new undrilled targets between Cyclopic and WestGold',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/878-tsx-venture/canx/205645-canex-announces-surface-exploration-results-from-the-combined-gold-basin-and-gold-range-project-arizona.html'},
+          {n:6, type:'future',date:null,estDate:'2026-09-01',overdue:false,text:'BLM Notice of Work permit submitted and under review for western district (Cyclopic, Ring Bear, Golden Chalice, West Chalice); eastern district (WestGold) already permitted',link:null},
+          {n:7, type:'future',date:null,estDate:'2026-10-15',overdue:false,text:'Data compilation complete for combined Gold Range + Gold Basin district; updated NI 43-101 resource incorporating both properties targeted',link:null},
+          {n:8, type:'milestone',date:null,estDate:'2027-01-01',overdue:false,text:'MILESTONE: First drill program on combined district - eastern zones (WestGold, Eldorado) near-term; western (Ring Bear, Golden Chalice, West Chalice) pending BLM permit',link:null}
+        ],
+        results:[
+          {n:1,date:'Prior to 2025',text:'Gold Range - WestGold: 27.4m @ 1.1 g/t Au (new discovery); 48.8m @ 1.0 g/t Au incl. 1.52m @ 9.7 g/t Au; 59.5m @ 1.0 g/t Au incl. 32m @ 1.4 g/t Au; 15.2m @ 1.0 g/t Au + 6.1m @ 4.1 g/t Au; 35.1m @ 1.6 g/t Au incl. 4.6m @ 8.2 g/t Au'},
+          {n:2,date:'Prior to 2025',text:'Metallurgy: 94-99% cyanide-soluble Au recoveries from bottle roll tests - excellent heap leach potential; near-surface oxide gold mineralization throughout district'},
+          {n:3,date:'Jun 17, 2026',text:'2026 surface program (combined district): Ring Bear 2.54 g/t Au/13m incl. 6.46 g/t/2m (300x450m); Golden Chalice 14.83 g/t Au/1m, 1.53 g/t/10m; West Chalice 12.15 g/t Au/2.7m (300x500m). All 3 undrilled.',date_key:'2026-06-17'},
+          {n:4,date:null,text:'No formal NI 43-101 M/I/I resource estimate yet across combined district. Gold Range technical report filed Dec 2025; Gold Basin data compilation underway. 8 mineralized zones known, multiple untested targets identified.'}
+        ]
+      },
+      'Louise': {
+        rangeStart:'2025-05-01', futureMonths:12,
+        revisions:[],
+        events:[
+          {n:1, type:'past',date:'2025-06-01',text:'Deep IP survey completed over Louise deposit; 2 new high priority porphyry targets identified - never drill tested, located below and lateral to historic mineralization',link:'https://canexmetals.ca/news/'},
+          {n:2, type:'future',date:null,estDate:null,overdue:false,text:'Drill permit amendment - BC exploration permit in hand; amendment needed for 2 new IP targets',link:null},
+          {n:3, type:'milestone',date:null,estDate:null,overdue:false,text:'MILESTONE: First drill holes into IP-defined porphyry targets at depth; no firm date',link:null}
+        ],
+        results:[
+          {n:1,date:null,text:'Historic (pre-CANX): 1,000m long x 100-200m wide zone to 270m depth. Best drill: 158m @ 0.41% Cu + 0.40 g/t Au from 53.5m (hole LL04-03). Grades interpreted to increase with depth toward deeper porphyry centre.'},
+          {n:2,date:'Jun 2025',text:'IP survey: 2 high priority targets identified below and lateral to known mineralization. No drill results yet under CANX ownership. Drill permit amendment pending.'}
+        ]
+      }
+    },
+    portfolio:[
+      {name:'Gold Range + Gold Basin (combined)',loc:'Mohave County, northern Arizona, USA - 42 km2 total; contiguous properties on 8km oxide gold trend. Eastern district (WestGold/Eldorado) permitted for drilling; western (Cyclopic, Ring Bear, Golden Chalice, West Chalice) BLM permit being prepared.',stage:'No formal NI 43-101 resource estimate on combined district yet. >900 historic + current drill holes. Multiple drill-defined deposits up to 1.7km long. Best drill: 59.5m @ 1.0 g/t Au incl. 32m @ 1.4 g/t Au. 94-99% cyanide-soluble Au recoveries. 3 new undrilled targets confirmed Jun 2026.',tag:'confirmed'},
+      {name:'Louise',loc:'~35km west of Smithers, west-central BC - road accessible. Option to earn 100% (payment schedule 2024-2028).',stage:'Historic near-surface zone 1,000m x 100-200m x 270m depth. Best: 158m @ 0.41% Cu + 0.40 g/t Au from 53.5m. IP survey (Jun 2025) defined 2 new deep porphyry targets never drilled. No NI 43-101 resource. Drill permit amendment pending.',tag:'speculative'},
+      {name:'Gibson Prospect',loc:'British Columbia, Canada',stage:'Early-stage claim. No drilling or resource estimate. No recent activity reported.',tag:'speculative'}
+    ]
+  },
+
+  KFR: {
+    name: 'Kingfisher Metals',
+    exchange: 'TSXV',
+    presentationUrl: 'https://kingfishermetals.com/wp-content/uploads/2026/01/KFR_JAN_2026.pdf',
+    color: '#1e40af',
+    catalysts: [
+      {symbol:'KFR',project:'Corporate',title:'Ball Creek West acquired from P2 Gold for C$1.3M - adds 7 claims adjacent to HWY 37 southern boundary',type:'Milestone',confidence:'Confirmed',date:'2025-01-29',sourceType:'Company PR',link:'https://kingfishermetals.com/category/news/',notes:'Consolidates Golden Triangle land package'},
+      {symbol:'KFR',project:'Corporate',title:'Hickman Project acquired from Golden Ridge Resources for C$0.05M + 2% NSR',type:'Milestone',confidence:'Confirmed',date:'2025-02-20',sourceType:'Company PR',link:'https://kingfishermetals.com/category/news/',notes:'Strategic land consolidation'},
+      {symbol:'KFR',project:'HWY 37',title:'HW-25-011: 425.0m @ 0.40% CuEq (0.15% Cu, 0.21 g/t Au, 2.2 g/t Ag) from 534m depth - BLIND porphyry Cu-Au discovery below Hank epithermal Au-Ag system; ends in increasing Cu grades at 959m',type:'Milestone',confidence:'Confirmed',date:'2025-12-01',sourceType:'Company PR',link:'https://kingfishermetals.com/category/news/',notes:'Electrum (5-10 micron grains), bornite, tennantite + chalcopyrite in petrographic analysis confirm fertile porphyry system'},
+      {symbol:'KFR',project:'HWY 37',title:'Forrest Kerr Project option signed (202 km2, 3-year term) - 3 porphyry Cu-Au + epithermal targets at RDN, Boundary, Forrest Creek; 1km south of HWY 37',type:'Milestone',confidence:'Confirmed',date:'2025-12-04',sourceType:'Company PR',link:'https://kingfishermetals.com/category/news/',notes:'Significantly expands Golden Triangle footprint'},
+      {symbol:'KFR',project:'Corporate',title:'Bought deal closed: C$30M (upsized) at $0.71/share - BMO Nesbitt Burns lead, includes Haywood, Raymond James, Velocity Trade',type:'Milestone',confidence:'Confirmed',date:'2026-03-03',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/kingfisher-metals.html',notes:'5.3M charity flow-through + shares; underwriter cash fee $1.45M'},
+      {symbol:'KFR',project:'HWY 37',title:'Multi-geophysical integration: MMT (1,825 line-km), merged airborne magnetics, 3D IP + DC resistivity inversions confirm Hank 2026 target area 1.75 km x 0.95 km; open all directions; hole ended in increasing Cu grades',type:'News',confidence:'Confirmed',date:'2026-04-02',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2938-tsx-venture/kfr/200507-multiple-geophysical-datasets-support-increased-target-dimensions-at-hank-copper-gold-discovery-hwy-37-project-golden-triangle.html',notes:'5 independent geophysical data layers confirm porphyry model'},
+      {symbol:'KFR',project:'HWY 37',title:'New porphyry Cu-Au target area delineated at Hank - separate from 2025 discovery hole, supports district-scale potential',type:'Milestone',confidence:'Confirmed',date:'2026-04-16',sourceType:'Company PR',link:'https://kingfishermetals.com/category/news/',notes:'CEO: aggressive follow-up drilling in 2026'},
+      {symbol:'KFR',project:'Corporate',title:'Sharon G.K. Singh appointed to Board of Directors',type:'Employee',confidence:'Confirmed',date:'2026-04-08',sourceType:'Company PR',link:'https://kingfishermetals.com/category/news/',notes:''},
+      {symbol:'KFR',project:'HWY 37',title:'2026 exploration: 15,000m drill program + geophysics + surface programs at HWY 37 + Forrest Kerr commenced; 2 of 3 rigs on site; 3rd rig arrives July 1',type:'Milestone',confidence:'Confirmed',date:'2026-06-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/kingfisher-metals.html',notes:'Targeting 2026 Hank porphyry zone + Forrest Kerr surface programs'},
+      {symbol:'KFR',project:'HWY 37',title:'First 2026 drill results from Hank porphyry - 15,000m program targeting 1.75 km x 0.95 km zone; 3 rigs active as of Jul 1',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-25',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/kingfisher-metals.html',notes:'Rev1 Jun 25 2026 - 3rd rig arrived Jul 1; results expected mid-summer 2026'}
+    ],
+    projectDefs: {
+      'HWY 37': {
+        rangeStart:'2025-06-01', futureMonths:9,
+        revisions:[{date:'2026-06-25',note:'Rev 1 - 2026 drill program commenced; 15,000m with 3 rigs; first results pending'}],
+        events:[
+          {n:1, type:'past',date:'2025-12-01',text:'HW-25-011 discovery: 425.0m @ 0.40% CuEq from 534m depth - BLIND porphyry Cu-Au below Hank epithermal; ends in increasing Cu grades at 959m; electrum, bornite, tennantite confirm fertile system',link:'https://kingfishermetals.com/category/news/'},
+          {n:2, type:'past',date:'2025-12-04',text:'Forrest Kerr Project optioned (202 km2, 3-year, ~$1.3M payments) - 3 porphyry + epithermal targets at RDN, Boundary, Forrest Creek; 1km south of main HWY 37 tenure',link:'https://kingfishermetals.com/category/news/'},
+          {n:3, type:'past',date:'2026-04-02',text:'5-dataset geophysical integration (MMT, airborne magnetics, 3D IP, DC resistivity, petrographic) defines 1.75 km x 0.95 km Hank 2026 drill target; open all directions',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2938-tsx-venture/kfr/200507-multiple-geophysical-datasets-support-increased-target-dimensions-at-hank-copper-gold-discovery-hwy-37-project-golden-triangle.html'},
+          {n:4, type:'past',date:'2026-04-16',text:'New porphyry Cu-Au target delineated at Hank - separate from HW-25-011, supports multi-center district potential',link:'https://kingfishermetals.com/category/news/'},
+          {n:5, type:'past',date:'2026-06-17',text:'15,000m drill program commenced; 2 rigs on site at HWY 37; geophysics + surface programs at Forrest Kerr underway',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/kingfisher-metals.html'},
+          {n:6, type:'past',date:'2026-06-25',text:'Second rig confirmed on site; third rig arrives July 1 - 3 rigs total now active at HWY 37',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/kingfisher-metals.html'},
+          {n:7, type:'future',date:null,estDate:'2026-08-01',overdue:false,text:'First 2026 drill results from Hank porphyry target - 15,000m program, 3 rigs, targeting 1.75 km x 0.95 km zone',link:null},
+          {n:8, type:'future',date:null,estDate:'2026-09-01',text:'Forrest Kerr first drill results - RDN, Boundary and Forrest Creek porphyry targets to be tested in 2026',link:null,overdue:false},
+          {n:9, type:'milestone',date:null,estDate:'2026-12-01',overdue:false,text:'MILESTONE: Resource estimate initiation if 2026 drilling confirms scale of Hank porphyry system; 933 km2 tenure warrants district-scale assessment',link:null}
+        ],
+        results:[
+          {n:1,date:'Dec 2025',text:'HW-25-011 (2025 discovery hole): 425.0m @ 0.15% Cu, 0.21 g/t Au, 2.2 g/t Ag (0.40% CuEq) from 534m depth. Blind discovery beneath Hank epithermal. Cu:Au ratios and mineralogy vector toward porphyry heat source to southeast. Ends in mineralization at 959m.',date_key:'2025-12-01'},
+          {n:2,date:'Jan 2026',text:'Williams deposit (HWY 37): HW-25-008: 889.35m @ 0.47% CuEq from surface (starts below 3.65m cover); HW-25-010: 721.7m @ 0.46% CuEq incl. 78.7m @ 1.01% CuEq from 4.3m depth — separate known system from Hank porphyry; grades continuous from surface',date_key:'2026-01-22'},
+          {n:3,date:null,text:'No formal NI 43-101 resource estimate across HWY 37. Williams & Hank are distinct systems. Forrest Kerr never drilled under Kingfisher ownership. MRE initiation targeted if 2026 drilling confirms scale.'}
+        ]
+      }
+    },
+    portfolio:[
+      {name:'HWY 37 Project',loc:'Golden Triangle, British Columbia - 933 km2; ~30km northeast of Iskut River',stage:'Early-stage porphyry discovery. HW-25-011: 425.0m @ 0.40% CuEq from 534m - blind Cu-Au porphyry below Hank epithermal. 2026 drill target 1.75 km x 0.95 km. No M/I/I resource. 15,000m program with 3 rigs underway.',tag:'speculative'},
+      {name:'Forrest Kerr Project',loc:'Golden Triangle, BC - 202 km2; 1km south of HWY 37, stretches 40km south',stage:'Optioned Dec 2025; 3 porphyry Cu-Au + epithermal Au-Ag targets (RDN, Boundary, Forrest Creek). Never drilled under Kingfisher. Surface programs commenced 2026. No M/I/I.',tag:'speculative'},
+      {name:'Ball Creek West',loc:'Golden Triangle, BC - adjacent to HWY 37 southern boundary',stage:'Acquired Jan 2025 from P2 Gold. Land consolidation package. No drilling. No M/I/I.',tag:'speculative'}
+    ]
+  },
+
+  OGW: {
+    name: 'Ongwe Minerals',
+    exchange: 'TSXV',
+    presentationUrl: 'https://ongweminerals.com/investors/',
+    color: '#9f1239',
+    catalysts: [
+      {symbol:'OGW',project:'Corporate',title:'RTO completed; TSXV listing commenced under OGW; $4.85M oversubscribed financing closed - formerly Lotus Gold Corporation',type:'Milestone',confidence:'Confirmed',date:'2026-02-12',sourceType:'Company PR',link:'https://www.globenewswire.com/news-release/2026/02/12/3237547/0/en/Ongwe-Minerals-Announces-Listing-and-Commencement-of-Trading-on-the-TSX-Venture-Exchange-Under-OGW.html',notes:'Team previously discovered Twin Hills (3.1Moz, Osino Resources, sold CAD$368M) and Otjikoto (sold to B2Gold CAD$180M)'},
+      {symbol:'OGW',project:'Khorixas',title:'RC drill rig mobilized - inaugural 6,000m bedrock sampling campaign commenced at Belmont Prospect',type:'Milestone',confidence:'Confirmed',date:'2026-02-18',sourceType:'Company PR',link:'https://energydigital.com/globenewswire/3240059',notes:'Bedrock RC sampling same methodology used to discover Twin Hills 3.1Moz deposit through calcrete cover in 2019'},
+      {symbol:'OGW',project:'Khorixas',title:'New 2km long bedrock gold anomaly at Belmont Prospect - altered and mineralized wall rock up to 125m wide on Khorixas Fault Zone',type:'Milestone',confidence:'Confirmed',date:'2026-04-15',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/ongwe-minerals.html',notes:''},
+      {symbol:'OGW',project:'Omatjete',title:'Additional licenses secured; Omatjete project area increased by 42%; now 50km strike on Okondeka Fault Zone',type:'Milestone',confidence:'Confirmed',date:'2026-04-01',sourceType:'Company PR',link:'https://ongweminerals.com/',notes:''},
+      {symbol:'OGW',project:'Corporate',title:'Dual-listed on Namibia Securities Exchange (NSX: ONG)',type:'Milestone',confidence:'Confirmed',date:'2026-04-15',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/ongwe-minerals.html',notes:'Enables Namibian institutional participation'},
+      {symbol:'OGW',project:'Omatjete',title:'Nguni Prospect discovered: 5km long gold-in-soil anomaly (up to 730ppb Au, 28 samples >300ppb) - 17km from Manga; same Okondeka Fault Zone trend as WIA Gold 2.93Moz Kokoseb',type:'Milestone',confidence:'Confirmed',date:'2026-06-09',sourceType:'Company PR',link:'https://ongweminerals.com/ongwe-minerals-discovers-new-multi-kilometer-gold-anomaly-at-its-omatjete-gold-project-in-namibia/',notes:'CEO: biggest gold-in-soil anomaly since first exploring Namibia in 2008; analogous to initial Kokoseb discovery grades'},
+      {symbol:'OGW',project:'Corporate',title:'$23M LIFE offering + PP closed (upsized from $10M) - Beacon Securities bookrunner; RC drilling at Khorixas underway; diamond drilling at Omatjete (Manga + Nguni) starting end of July',type:'Milestone',confidence:'Confirmed',date:'2026-06-30',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/3368-tsx-venture/ogw/206515-ongwe-minerals-closes-life-offering-and-concurrent-private-placement.html',notes:'High demand from Namibian investors via dual-listing; high quality specialist + generalist institutions'},
+      {symbol:'OGW',project:'Khorixas',title:'Diamond drilling at Belmont + RC results from Khorixas - first assay results from Belmont bedrock program',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-30',sourceType:'Company PR',link:'https://ongweminerals.com/',notes:'Rev1 Jun 30 2026 - RC drilling underway at Khorixas; bedrock targets defined for diamond follow-up'},
+      {symbol:'OGW',project:'Omatjete',title:'Diamond drilling commences at Omatjete (Manga + Nguni targets) - targeted end of July 2026',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-07-31',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/3368-tsx-venture/ogw/206515-ongwe-minerals-closes-life-offering-and-concurrent-private-placement.html',notes:'Rev1 Jun 30 2026 - CEO confirmed late July start; Manga 4.5km x 1km footprint; Nguni 5km open-ended'}
+    ],
+    projectDefs: {
+      'Omatjete': {
+        rangeStart:'2026-02-01', futureMonths:9,
+        revisions:[{date:'2026-07-31',note:'Rev 1 - Nguni discovered Jun 9; diamond drilling targeted late July; $23M raised to fund program'}],
+        events:[
+          {n:1, type:'past',date:'2026-04-01',text:'Additional licenses secured; Omatjete area increased 42%; 50km strike now controlled on Okondeka Fault Zone (OFZ)',link:'https://ongweminerals.com/'},
+          {n:2, type:'past',date:'2026-06-09',text:'Nguni Prospect discovered: 5km long Au-in-soil anomaly, up to 730ppb Au, 28 samples >300ppb; open N/E/W; 17km from Manga; same OFZ trend as WIA Gold 2.93Moz Kokoseb deposit 55km away',link:'https://ongweminerals.com/ongwe-minerals-discovers-new-multi-kilometer-gold-anomaly-at-its-omatjete-gold-project-in-namibia/'},
+          {n:3, type:'future',date:null,estDate:'2026-07-31',overdue:false,text:'Diamond drilling commences at Omatjete - testing Manga (4.5km x 1km, scout drilling confirmed gold in bedrock) and Nguni (5km open-ended anomaly) targets',link:null},
+          {n:4, type:'future',date:null,estDate:'2026-10-01',overdue:false,text:'First diamond drill results from Manga and Nguni targets - first true resource-definition drilling at Omatjete',link:null},
+          {n:5, type:'milestone',date:null,estDate:'2027-01-01',overdue:false,text:'MILESTONE: Maiden resource estimate at Omatjete if diamond drilling confirms scale of Manga/Nguni system',link:null}
+        ],
+        results:[
+          {n:1,date:null,text:'Manga Prospect (Omatjete): 4.5km x 1km footprint; soil anomaly + early scout drilling confirmed gold in bedrock. No formal drill assay table published yet.'},
+          {n:2,date:'Jun 9, 2026',text:'Nguni Prospect (Omatjete): 5km gold-in-soil anomaly (open-ended), up to 730ppb Au, peak 28 samples >300ppb; mineralization hosted in metasediments at granitic contact. Infill 50x50m grid ongoing.',date_key:'2026-06-09'},
+          {n:3,date:null,text:'No formal NI 43-101 resource estimate across any Omatjete target. All results to date are surface geochemistry only. Diamond drilling starting July 2026 will be first systematic resource-definition program.'}
+        ]
+      },
+      'Khorixas': {
+        rangeStart:'2026-02-01', futureMonths:9,
+        revisions:[],
+        events:[
+          {n:1, type:'past',date:'2026-02-18',text:'RC drill rig mobilized; 6,000m bedrock sampling campaign commenced at Belmont Prospect to outline gold targets beneath calcrete cover',link:'https://energydigital.com/globenewswire/3240059'},
+          {n:2, type:'past',date:'2026-04-15',text:'New 2km long bedrock gold anomaly at Belmont: altered/mineralized wall rock up to 125m wide on Khorixas Fault Zone',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/ongwe-minerals.html'},
+          {n:3, type:'future',date:null,estDate:'2026-08-15',overdue:false,text:'RC bedrock sampling complete; diamond drilling targets defined at Belmont for follow-up',link:null},
+          {n:4, type:'milestone',date:null,estDate:'2026-11-01',overdue:false,text:'MILESTONE: First diamond drill holes at Belmont/Khorixas - analogous to Twin Hills 2019 discovery workflow',link:null}
+        ],
+        results:[
+          {n:1,date:'Apr 15, 2026',text:'Belmont Prospect: 2km long bedrock Au anomaly on Khorixas Fault Zone; altered/mineralized wall rock up to 125m wide. RC drilling in progress.',date_key:'2026-04-15'},
+          {n:2,date:null,text:'No diamond drill results yet at Khorixas. RC bedrock sampling is target-definition step ahead of diamond drilling. Twin Hills (3.1Moz) was discovered using same RC-through-calcrete methodology in 2019.'}
+        ]
+      }
+    },
+    portfolio:[
+      {name:'Omatjete Gold Project',loc:'Central Namibia - 1,440 km2 on Okondeka Fault Zone (OFZ); hosts Manga (4.5km x 1km) and newly discovered Nguni (5km open-ended) prospects; 55km from WIA Gold 2.93Moz Kokoseb',stage:'Early-stage. Manga: scout drilling confirmed Au in bedrock; diamond drilling commencing Jul 2026. Nguni: discovered Jun 9, 2026 - 5km soil anomaly, up to 730ppb Au. No M/I/I. OFZ same structure as Kokoseb and adjacent WIA Gold land.',tag:'speculative'},
+      {name:'Khorixas Gold Project',loc:'Northern Zone, Damara Belt, Namibia - 1,690 km2; Belmont Prospect on Khorixas Fault Zone',stage:'Early-stage. Belmont: RC bedrock sampling ongoing; 2km anomaly defined Apr 2026. Diamond drilling to follow RC program. No M/I/I.',tag:'speculative'},
+      {name:'Outjo Gold Project',loc:'Northern Zone, Damara Orogenic Belt, Namibia - 460 km2',stage:'Early-stage. Grassroots exploration. No drill results. No M/I/I.',tag:'speculative'},
+      {name:'Eastern Desert Gold Project',loc:'Central Eastern Desert, Egypt - Arabian Nubian Shield (ANS)',stage:'Early-stage. Portfolio asset. No recent drilling reported. No M/I/I.',tag:'speculative'}
+    ]
+  },
+
+  BIG: {
+    name: 'Hercules Metals',
+    exchange: 'TSXV',
+    presentationUrl: 'https://www.herculesmetals.com/wp-content/uploads/2026/04/2026-04-04-Hercules-Metals_CorpDeck.pdf',
+    color: '#6b21a8',
+    catalysts: [
+      {symbol:'BIG',project:'Leviathan',title:'HER-25-15: 420.62m @ 0.60% Cu, 6.0 g/t Ag, 65ppm Mo incl. 112.78m @ 1.38% Cu, 14 g/t Ag, 40ppm Mo - thick footwall zone',type:'Milestone',confidence:'Confirmed',date:'2025-12-01',sourceType:'Company PR',link:'https://investingnews.com/hercules-metals-intersects-420-m-of-0-60-copper-and-6-g-t-ag-including-113-m-of-1-38-copper-and-14-g-t-ag-at-the-leviathan-porphyry-system-in-idaho/',notes:'Northern cluster; holes ending in increasing grades at depth'},
+      {symbol:'BIG',project:'Leviathan',title:'HER-25-17: 46.03m @ 2.17% Cu, 16.0 g/t Ag, 44ppm Mo - strong hypogene enrichment; MT conductor revealed at depth',type:'Milestone',confidence:'Confirmed',date:'2025-12-18',sourceType:'Company PR',link:'https://investingnews.com/hercules-metals-intersects-420-m-of-0-60-copper-and-6-g-t-ag-including-113-m-of-1-38-copper-and-14-g-t-ag-at-the-leviathan-porphyry-system-in-idaho/',notes:'Vectors toward additional undiscovered porphyry centers northeast'},
+      {symbol:'BIG',project:'Corporate',title:'Barrick Mining Corporation strategic option agreement completed - consolidates 73km of claims around Leviathan',type:'Milestone',confidence:'Confirmed',date:'2026-02-19',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/hercules-metals.html',notes:'Share-based strategic option; Barrick validates district-scale potential'},
+      {symbol:'BIG',project:'Leviathan',title:'2026 drilling commenced; HER-25-18 resumed (paused at 841m with potassic alteration); HER-25-25 resumed (paused at 808m within leach cap); second rig en route',type:'Milestone',confidence:'Confirmed',date:'2026-03-17',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2952-tsx-venture/big/199436-hercules-metals-commences-2026-drilling-at-the-hercules-property-in-western-idaho.html',notes:''},
+      {symbol:'BIG',project:'Leviathan',title:'HER-25-18 (final): 670m @ 0.45% Cu, 4.0 g/t Ag, 95ppm Mo incl. 212.81m @ 0.67% Cu, 10.2 g/t Ag, 128ppm Mo - longest Leviathan interval at time; starts 150m below surface; was open at 842m when resumed',type:'Milestone',confidence:'Confirmed',date:'2026-03-30',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2952-tsx-venture/big/200204-hercules-metals-intersects-670-m-of-0-45-copper-4-g-t-ag-and-95-ppm-mo-including-213-m-of-0-67-copper-10-g-t-ag-128-ppm-mo-at-the-leviathan-porphyry-system-in-idaho.html',notes:'200m SW step-out from HER-25-15; confirms strong continuity across footprint'},
+      {symbol:'BIG',project:'Leviathan',title:'Hook and Pegasus targets confirmed drill-ready via IP survey: Hook 1km anomaly coincident MT + IP (up to 25mV/V near surface); Pegasus cylindrical MT anomaly under basalt, never explored',type:'News',confidence:'Confirmed',date:'2026-04-22',sourceType:'Company PR',link:'https://www.newsfilecorp.com/release/293696/Hercules-Metals-Announces-Positive-Results-of-Induced-Polarization-Survey-at-New-Targets-Hercules-Project-Idaho',notes:'Similar scale and geometry to original Leviathan discovery; both open-ended'},
+      {symbol:'BIG',project:'Leviathan',title:'HER-25-25: 177m @ 0.66% CuEq at edge of large MT conductivity anomaly - NEW blind Cu porphyry system at Southern Flats Zone; step-out drilling underway',type:'Milestone',confidence:'Confirmed',date:'2026-05-20',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/hercules-metals.html',notes:'3rd distinct porphyry center potentially identified within Hercules Property'},
+      {symbol:'BIG',project:'Leviathan',title:'HER-25-21 (final): 801.6m @ 0.40% CuEq (0.30% Cu, 82ppm Mo, 5.3 g/t Ag) incl. 21.3m @ 2.00% CuEq (165.7 g/t Ag) - extends footwall SW; HER-25-18 final: 787.9m @ 0.54% CuEq incl. 212m @ 0.67% CuEq',type:'Milestone',confidence:'Confirmed',date:'2026-06-16',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2952-tsx-venture/big/205522-hercules-metals-intersects-788-m-of-0-54-copper-equivalent-and-802-m-of-0-40-copper-equivalent-at-the-leviathan-porphyry-system-in-idaho.html',notes:'Drilling + IP at Hook; IP survey expanded; Leviathan open SW for further step-out'},
+      {symbol:'BIG',project:'Leviathan',title:'Hook target drill results + HER-25-25 step-out results - testing strongest chargeability anomaly on property + Southern Flats porphyry center',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-16',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/hercules-metals.html',notes:'Rev1 Jun 16 2026 - Hook drilling commenced; step-out from HER-25-25 underway at Southern Flats'},
+      {symbol:'BIG',project:'Leviathan',title:'Resource estimate initiation - Leviathan footwall zone, Pegasus and Southern Flats zones being evaluated for inclusion',type:'Forecasted Catalyst',confidence:'Speculative',date:'2026-06-16',sourceType:'Company PR',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/hercules-metals.html',notes:'Rev1 Jun 16 2026 - no formal resource announced; Barrick involvement validates development pathway'}
+    ],
+    projectDefs: {
+      'Leviathan': {
+        rangeStart:'2025-09-01', futureMonths:9,
+        revisions:[{date:'2026-06-16',note:'Rev 1 - HER-25-18 and HER-25-21 finals in; Hook drilling started; HER-25-25 step-out underway; Southern Flats new porphyry center confirmed'}],
+        events:[
+          {n:1, type:'past',date:'2025-12-01',text:'HER-25-15: 420.62m @ 0.60% Cu, 6.0 g/t Ag incl. 112.78m @ 1.38% Cu, 14 g/t Ag - thick high-grade footwall zone; northern cluster ending in increasing grades',link:'https://investingnews.com/hercules-metals-intersects-420-m-of-0-60-copper-and-6-g-t-ag-including-113-m-of-1-38-copper-and-14-g-t-ag-at-the-leviathan-porphyry-system-in-idaho/'},
+          {n:2, type:'past',date:'2025-12-18',text:'HER-25-17: 46.03m @ 2.17% Cu, 16.0 g/t Ag, 44ppm Mo - hypogene enrichment; MT conductor at depth vectors toward NE expansion; new epithermal Ag-Pb-Zn center in Southern Flats',link:'https://investingnews.com/hercules-metals-intersects-420-m-of-0-60-copper-and-6-g-t-ag-including-113-m-of-1-38-copper-and-14-g-t-ag-at-the-leviathan-porphyry-system-in-idaho/'},
+          {n:3, type:'past',date:'2026-02-19',text:'Barrick Mining strategic option completed - consolidates 73km of claims around Leviathan; share-based; validates district-scale development thesis',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/hercules-metals.html'},
+          {n:4, type:'past',date:'2026-03-30',text:'HER-25-18: 670m @ 0.45% Cu, 4.0 g/t Ag, 95ppm Mo incl. 212.81m @ 0.67% Cu - longest interval at Leviathan at time; 200m SW step-out from HER-25-15; starts 150m below surface',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2952-tsx-venture/big/200204-hercules-metals-intersects-670-m-of-0-45-copper-4-g-t-ag-and-95-ppm-mo-including-213-m-of-0-67-copper-10-g-t-ag-128-ppm-mo-at-the-leviathan-porphyry-system-in-idaho.html'},
+          {n:5, type:'past',date:'2026-04-22',text:'Hook (1km, MT+IP coincident, up to 25mV/V near surface) and Pegasus (cylindrical MT, under basalt, never explored) confirmed drill-ready; similar scale to original Leviathan discovery',link:'https://www.newsfilecorp.com/release/293696/Hercules-Metals-Announces-Positive-Results-of-Induced-Polarization-Survey-at-New-Targets-Hercules-Project-Idaho'},
+          {n:6, type:'past',date:'2026-05-20',text:'HER-25-25: 177m @ 0.66% CuEq at margin of large MT anomaly - confirms NEW blind porphyry center at Southern Flats; step-out drilling underway toward conductor core',link:'https://www.juniorminingnetwork.com/market-data/stock-quote/hercules-metals.html'},
+          {n:7, type:'past',date:'2026-06-16',text:'HER-25-21 final: 801.6m @ 0.40% CuEq incl. 21.3m @ 2.00% CuEq (165.7 g/t Ag); HER-25-18 final: 787.9m @ 0.54% CuEq - Leviathan open SW; Hook drilling commenced; IP survey expanded',link:'https://www.juniorminingnetwork.com/junior-miner-news/press-releases/2952-tsx-venture/big/205522-hercules-metals-intersects-788-m-of-0-54-copper-equivalent-and-802-m-of-0-40-copper-equivalent-at-the-leviathan-porphyry-system-in-idaho.html'},
+          {n:8, type:'future',date:null,estDate:'2026-08-01',overdue:false,text:'Hook first drill results - testing strongest chargeability anomaly on property (up to 40mV/V); ~350-400m collar to reach target at 100m depth',link:null},
+          {n:9, type:'future',date:null,estDate:'2026-08-15',overdue:false,text:'HER-25-25 step-out results from Southern Flats - testing core of new blind porphyry system; MT conductor untested',link:null},
+          {n:10,type:'milestone',date:null,estDate:'2026-12-01',overdue:false,text:'MILESTONE: Resource estimate initiation - Leviathan footwall + Pegasus + Southern Flats if 2026 drilling confirms multi-center district scale',link:null}
+        ],
+        results:[
+          {n:1,date:'Dec 1, 2025', text:'HER-25-15: 420.62m @ 0.60% Cu, 6.0 g/t Ag incl. 112.78m @ 1.38% Cu - best high-grade interval at Leviathan to date at time',date_key:'2025-12-01'},
+          {n:2,date:'Dec 18, 2025',text:'HER-25-17: 46.03m @ 2.17% Cu, 16.0 g/t Ag, 44ppm Mo - hypogene enrichment confirmed; epithermal Ag-Pb-Zn in Southern Flats reconnaissance holes',date_key:'2025-12-18'},
+          {n:3,date:'Mar 30, 2026',text:'HER-25-18 final: 787.9m @ 0.54% CuEq incl. 212.81m @ 0.67% Cu, 10.2 g/t Ag, 128ppm Mo - longest confirmed interval at Leviathan; starts 150m below surface',date_key:'2026-03-30'},
+          {n:4,date:'May 20, 2026',text:'HER-25-25: 177m @ 0.66% CuEq at edge of MT anomaly - first indication of Southern Flats blind porphyry center',date_key:'2026-05-20'},
+          {n:5,date:'Jun 16, 2026',text:'HER-25-21: 801.6m @ 0.40% CuEq incl. 107.8m @ 0.52% CuEq + 21.3m @ 2.00% CuEq (165.7 g/t Ag) - extends footwall SW; now 3 distinct mineralized zones: Leviathan, Southern Flats, Hook',date_key:'2026-06-16'},
+          {n:6,date:null,text:'No formal NI 43-101 resource estimate. Barrick strategic option involvement validates project development path. 100 km2 MT survey outlined 6km corridor with multiple discrete conductive centers.'}
+        ]
+      }
+    },
+    portfolio:[
+      {name:'Leviathan (Hercules Property)',loc:'Western Idaho, USA - northwest of Cambridge, ID. 100% owned. Barrick strategic option consolidating 73km of claims.',stage:'Active discovery-stage drilling. No M/I/I resource estimate. Best results: HER-25-18 787.9m @ 0.54% CuEq, HER-25-15 incl. 112.78m @ 1.38% Cu, HER-25-21 801.6m @ 0.40% CuEq. 3 mineralized zones: Leviathan footwall, Southern Flats (new blind porphyry), Hook (strongest chargeability on property, drilling commenced). Mineralization open SW and depth.',tag:'confirmed'}
+    ]
+  }
+};
+// END_TICKER_DATA
+
+// END_TICKER_DATA
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function fmtD(d,mode){
+  if(!d) return '';
+  if(d.length<=7||d.includes('\u2013')) return d;
+  const opts=mode==='tick'?{month:'short'}:mode==='short'?{month:'short',day:'numeric'}:{month:'short',day:'numeric',year:'numeric'};
+  try{return new Date(d).toLocaleDateString('en-US',opts);}catch(e){return d;}
+}
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const QTR=[0,3,6,9];
+function monthTicks(rStart,rEnd,pctFn){
+  const ticks=[],cur=new Date(rStart.getFullYear(),rStart.getMonth(),1);
+  cur.setMonth(cur.getMonth()+1);
+  while(cur<=rEnd){
+    const p=pctFn(cur);
+    if(p>1&&p<99) ticks.push({label:MONTHS[cur.getMonth()],pct:p,isQtr:QTR.includes(cur.getMonth())});
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return ticks;
+}
+
+// ─── GANTT ────────────────────────────────────────────────────────────────────
+function renderGantt(ticker,td,container){
+  const today=new Date(),body=document.createElement('div');
+  Object.entries(td.projectDefs).forEach(([proj,pd])=>{
+    const rStart=new Date(pd.rangeStart),rEnd=new Date(today);
+    rEnd.setMonth(rEnd.getMonth()+pd.futureMonths);
+    const span=rEnd-rStart,pct=d=>Math.max(0,Math.min(99.5,((new Date(d)-rStart)/span)*100));
+    const todayP=pct(today),ticks=monthTicks(rStart,rEnd,pct);
+    const futEvts=pd.events.filter(e=>!e.date);
+    const fzS=todayP+3,fzE=95;
+    futEvts.forEach((e,i)=>{
+      if(e.estDate){e._p=pct(e.estDate);}
+      else{const un=futEvts.filter(x=>!x.estDate);e._p=fzS+un.indexOf(e)*(fzE-fzS)/Math.max(un.length-1,1);}
+    });
+    const block=document.createElement('div');block.className='g-project';
+    // Axis row
+    const axR=document.createElement('div');axR.className='g-row';
+    const axL=document.createElement('div');axL.className='g-label';axL.style.paddingTop='20px';
+    axL.innerHTML=`<div class="proj">${proj}</div><div class="pticker">${ticker}</div>`;
+    const axC=document.createElement('div');axC.className='g-chart';
+    const axis=document.createElement('div');axis.className='g-axis';
+    ticks.forEach(t=>{const s=document.createElement('span');s.textContent=t.label;s.style.left=t.pct+'%';s.className=t.isQtr?'tick-qtr':'tick-mid';axis.appendChild(s);});
+    const tls=document.createElement('span');tls.textContent='Today';tls.className='today-lbl';tls.style.left=todayP+'%';axis.appendChild(tls);
+    axC.appendChild(axis);axR.appendChild(axL);axR.appendChild(axC);block.appendChild(axR);
+    function makeTrack(cls){
+      const row=document.createElement('div');row.className='g-row';
+      const lbl=document.createElement('div');lbl.className='g-label';lbl.style.display='flex';lbl.style.alignItems='center';
+      const ch=document.createElement('div');ch.className='g-chart';
+      const tr=document.createElement('div');tr.className='g-track '+cls;
+      const fb=document.createElement('div');fb.className='g-future-bg';fb.style.cssText=`left:${todayP}%;width:${100-todayP}%;`;tr.appendChild(fb);
+      const tl=document.createElement('div');tl.className='g-today-line';tl.style.left=todayP+'%';tr.appendChild(tl);
+      ticks.forEach(t=>{const gl=document.createElement('div');gl.className='g-gridline';gl.style.left=t.pct+'%';tr.appendChild(gl);});
+      ch.appendChild(tr);row.appendChild(lbl);row.appendChild(ch);
+      return {row,lbl,track:tr};
+    }
+    const {row:catRow,lbl:catLbl,track:catTr}=makeTrack('cat-track');
+    catLbl.innerHTML='<span class="row-tag cat">Events &amp; Catalysts</span>';
+    if(pd.revisions&&pd.revisions.length){
+      const rd=pd.revisions.map(r=>r.date),x0=pct(rd[0]),xL=pct(rd[rd.length-1]);
+      const sb=document.createElement('div');sb.className='g-bar';sb.style.cssText=`left:${x0}%;width:${Math.max(xL-x0,.5)}%;`;catTr.appendChild(sb);
+      const qb=document.createElement('div');qb.className='g-bar quiet';qb.style.cssText=`left:${xL}%;width:${Math.max(todayP-xL,0)}%;`;catTr.appendChild(qb);
+      const mP=futEvts.length?futEvts[futEvts.length-1]._p:93;
+      const fbar=document.createElement('div');fbar.className='g-bar-future';fbar.style.cssText=`left:${todayP}%;width:${Math.max(mP-todayP,0)}%;`;catTr.appendChild(fbar);
+    }
+    const usedP=[];
+    pd.events.forEach(e=>{
+      let xp=e.date?pct(e.date):(e._p!==undefined?e._p:null);if(xp===null)return;
+      let nudge=0;while(usedP.some(u=>Math.abs(u-(xp+nudge))<3.5))nudge+=4;xp+=nudge;usedP.push(xp);
+      const m=document.createElement('div');m.className=`g-num ${e.type==='media'?'media':e.type}`;
+      if(e.overdue)m.style.outline='2px solid var(--rose)';
+      m.style.left=xp+'%';m.textContent=e.type==='milestone'?'\u2605':e.n;
+      if(e.link){m.style.cursor='pointer';m.onclick=()=>window.open(e.link,'_blank');}
+      m.title=(e.date?fmtD(e.date)+' \u2014 ':(e.estDate?'Est. '+fmtD(e.estDate)+(e.overdue?' \u26a0 OVERDUE':'')+' \u2014 ':'TBD \u2014 '))+e.text;
+      catTr.appendChild(m);
+      const dl=document.createElement('div');dl.className='g-dlabel';dl.style.left=xp+'%';
+      if(e.date)dl.textContent=fmtD(e.date,'short');
+      else if(e.estDate){dl.textContent=(e.overdue?'\u26a0 ':'')+fmtD(e.estDate,'short')+'*';dl.style.color=e.overdue?'var(--rose)':'var(--ora)';}
+      catTr.appendChild(dl);
+    });
+    block.appendChild(catRow);
+    const {row:resRow,lbl:resLbl,track:resTr}=makeTrack('res-track');
+    resLbl.innerHTML='<span class="row-tag res">Exploration Results</span>';
+    const usedRP=[];
+    (pd.results||[]).filter(r=>r.date_key).forEach(r=>{
+      let xp=pct(r.date_key);let nudge=0;while(usedRP.some(u=>Math.abs(u-(xp+nudge))<3.5))nudge+=4;xp+=nudge;usedRP.push(xp);
+      const m=document.createElement('div');m.className='g-num result';m.style.left=xp+'%';m.textContent=r.n;m.title=r.date+' \u2014 '+r.text;resTr.appendChild(m);
+      const dl=document.createElement('div');dl.className='g-dlabel';dl.style.left=xp+'%';dl.textContent=fmtD(r.date_key,'short');resTr.appendChild(dl);
+    });
+    block.appendChild(resRow);
+    const meta=document.createElement('div');meta.className='g-meta';
+    if(pd.revisions&&pd.revisions.length){
+      const r0=pd.revisions[0],rL=pd.revisions[pd.revisions.length-1];
+      const td2=Math.round((today-new Date(r0.date))/86400000),qd=Math.round((today-new Date(rL.date))/86400000);
+      meta.innerHTML+=`<div class="sl"><strong>Status:</strong> Open catalyst \u2014 first flagged <strong>${td2} days ago</strong> \u00b7 ${pd.revisions.length} revision${pd.revisions.length>1?'s':''} logged \u00b7 <strong>${qd} days</strong> since last update</div>`;
+    }else{meta.innerHTML+='<div class="sl"><strong>Status:</strong> No open forecasted catalyst</div>';}
+    meta.innerHTML+='<div class="sec">Events &amp; Catalysts</div>';
+    const cu=document.createElement('ul');
+    pd.events.forEach(e=>{
+      const li=document.createElement('li');
+      const ns=document.createElement('span');ns.className=`i-num ${e.type==='media'?'media':e.type}`;ns.textContent=e.type==='milestone'?'\u2605':e.n;
+      let dstr='';
+      if(e.date)dstr=`<span class="i-date">${fmtD(e.date)}</span> \u2014 `;
+      else if(e.estDate)dstr=`<span class="tbd">Est. ${fmtD(e.estDate)}*${e.overdue?` <span class="overdue-txt">\u26a0 OVERDUE</span>`:''}</span> \u2014 `;
+      else dstr='<span class="tbd">TBD</span> \u2014 ';
+      const lo=e.link?`<a href="${e.link}" target="_blank" rel="noopener" style="color:var(--sky);text-decoration:none;">`:'';
+      const ts=document.createElement('span');ts.className='i-text';ts.innerHTML=dstr+lo+e.text+(e.link?'</a>':'');
+      li.appendChild(ns);li.appendChild(ts);cu.appendChild(li);
+    });
+    meta.appendChild(cu);
+    meta.innerHTML+='<div class="sec">Exploration Results to Date</div>';
+    const ru=document.createElement('ul');
+    (pd.results||[]).forEach(r=>{
+      const li=document.createElement('li');
+      const ns=document.createElement('span');ns.className='i-num result';ns.textContent=r.n;
+      const ts=document.createElement('span');ts.className='i-text';ts.innerHTML=(r.date?`<span class="i-date">${r.date}</span> \u2014 `:'')+ r.text;
+      li.appendChild(ns);li.appendChild(ts);ru.appendChild(li);
+    });
+    meta.appendChild(ru);
+    block.appendChild(meta);
+    const hr=document.createElement('hr');hr.className='div';block.appendChild(hr);
+    body.appendChild(block);
+  });
+  container.appendChild(body);
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function renderTable(td,container){
+  const wrap=document.createElement('div');wrap.style.overflowX='auto';
+  const tbl=document.createElement('table');
+  tbl.innerHTML='<thead><tr><th>Symbol</th><th>Project</th><th>Title</th><th>Type</th><th>Confidence</th><th>Date</th><th>Source</th><th>Link</th><th>Notes</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  (td.catalysts||[]).forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.isNew)tr.style.background='#fffbeb';
+    const cc=r.confidence==='Confirmed'?'confirmed':(r.confidence==='Speculative'?'speculative':'mixed');
+    const newBadge=r.isNew?'<span class="new-badge">NEW</span>':'';
+    tr.innerHTML=`<td>${r.symbol}</td><td>${r.project}</td><td>${r.title}${newBadge}</td><td>${r.type}</td><td><span class="badge ${cc}">${r.confidence}</span></td><td>${fmtD(r.date)}</td><td>${r.sourceType}</td><td><a class="lnk" href="${r.link}" target="_blank" rel="noopener">link</a></td><td>${r.notes||''}</td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);wrap.appendChild(tbl);container.appendChild(wrap);
+}
+
+// ─── PORTFOLIO ────────────────────────────────────────────────────────────────
+function renderPortfolio(td,container){
+  const grid=document.createElement('div');grid.className='port';
+  (td.portfolio||[]).forEach(p=>{
+    const c=document.createElement('div');c.className='pcard';
+    c.innerHTML=`<div class="ptag ${p.tag}">${p.tag==='confirmed'?'Has data':'Early-stage'}</div><div class="pname">${p.name}</div><div class="ploc">${p.loc}</div><div class="pstage">${p.stage}</div>`;
+    grid.appendChild(c);
+  });
+  container.appendChild(grid);
+}
+
+// ─── BUILD PANES ─────────────────────────────────────────────────────────────
+function buildPanes(data){
+  const content=document.getElementById('content'),tabsEl=document.getElementById('tabs');
+  tabsEl.innerHTML='';content.innerHTML='';
+  Object.entries(data).forEach(([ticker,td],i)=>{
+    const tab=document.createElement('button');tab.className='tab'+(i===0?' active':'');
+    tab.dataset.ticker=ticker;
+    tab.innerHTML=ticker;
+    tab.onclick=()=>switchTab(ticker);tabsEl.appendChild(tab);
+    const pane=document.createElement('div');pane.className='pane'+(i===0?' active':'');pane.id=`pane-${ticker}`;
+    // ── Ticker header bar ──
+    const hbar=document.createElement('div');hbar.className='ticker-hbar';
+    const hLeft=document.createElement('div');hLeft.className='ticker-hbar-left';
+    hLeft.innerHTML=`<span class="ticker-sym">${ticker}</span><span class="ticker-name">${td.name}</span><span class="tab-badge ${ticker.toLowerCase()}" style="font-size:10px;padding:2px 7px;">${td.exchange}</span>`;
+    const hRight=document.createElement('div');hRight.className='ticker-hbar-right';
+    if(td.presentationUrl){
+      hRight.innerHTML=`<a href="${td.presentationUrl}" target="_blank" rel="noopener" class="pres-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Corporate Presentation</a>`;
+    }
+    hbar.appendChild(hLeft);hbar.appendChild(hRight);pane.appendChild(hbar);
+    const g=document.createElement('div');g.className='card';
+    g.innerHTML='<div class="card-title">Catalyst Timeline</div><div class="legend"><span><span class="lg-num" style="background:var(--teal-bg);color:var(--teal-text);border:1px solid var(--teal);">1</span>Past confirmed</span><span><span class="lg-num" style="background:var(--ora-bg);color:var(--ora-text);border:1px dashed var(--ora);">5</span>Future / pending</span><span><span class="lg-num" style="background:var(--vio-bg);color:var(--vio-text);border:1px solid var(--vio);">&#9733;</span>Milestone</span><span><span class="lg-num" style="background:var(--sky-bg);color:var(--sky-text);border:1px solid var(--sky);">1</span>Exploration result</span><span style="color:var(--text3);font-style:italic;">* = estimated &nbsp; &#9888; = overdue</span></div>';
+    renderGantt(ticker,td,g);pane.appendChild(g);
+    const s=document.createElement('div');s.className='card';
+    s.innerHTML='<div class="card-title">Full Dataset — Schema View</div>';
+    renderTable(td,s);pane.appendChild(s);
+    const p=document.createElement('div');p.className='card';
+    p.innerHTML='<div class="card-title">Project Portfolio — Location &amp; Stage</div>';
+    renderPortfolio(td,p);pane.appendChild(p);
+    pane.appendChild(Object.assign(document.createElement('p'),{className:'footnote',textContent:'* = estimated date based on typical permit timelines · Numbers on timeline match bullets below'}) );
+    content.appendChild(pane);
+  });
+}
+function switchTab(ticker){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.ticker===ticker));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id===`pane-${ticker}`));
+}
+
+// ─── RUN UPDATE ──────────────────────────────────────────────────────────────
+async function runUpdate(){
+  const btn=document.getElementById('runBtn'),msg=document.getElementById('statusMsg');
+  const SVG_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>';
+  btn.style.background='#475569';btn.style.cursor='wait';btn.textContent='Updating...';
+  msg.style.display='inline-block';msg.style.background='var(--teal-bg)';msg.style.color='var(--teal-text)';
+
+  let readUrls=new Set();
+  try{const s=await window.storage.get('pit:read_urls');if(s)readUrls=new Set(JSON.parse(s.value));}catch(e){}
+
+  const live={};
+  for(const k of Object.keys(TICKER_DATA)){
+    try{const s=await window.storage.get('ticker:'+k);live[k]=s?JSON.parse(s.value):TICKER_DATA[k];}
+    catch(e){live[k]=TICKER_DATA[k];}
+  }
+
+  let totalNew=0,errors=[];
+  const tickers=Object.keys(live);
+
+  for(let i=0;i<tickers.length;i++){
+    const ticker=tickers[i],td=live[ticker];
+    msg.textContent=`Checking ${ticker} (${i+1}/${tickers.length})…`;
+    if(i>0) await new Promise(r=>setTimeout(r,600));
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:(()=>{
+          const prompt='Return ONLY a valid JSON array, no markdown. List recent news/press releases you know about '+td.name+' (ticker: '+ticker+', exchange: '+td.exchange+') from 2025 onward. Each object must have these exact keys: title, date (YYYY-MM-DD), url, project, type, confidence, notes. Type must be one of: News, Milestone, Event, Employee, Forecasted Catalyst. Confidence must be: Confirmed or Speculative. If nothing known return [].';
+          return JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:prompt}]});
+        })()
+      });
+
+      if(!res.ok){
+        const errBody=await res.text().catch(()=>'');
+        const errMsg=`HTTP ${res.status}: ${errBody.slice(0,100)}`;
+        errors.push(`${ticker}: ${errMsg}`);
+        console.error(ticker,errMsg);
+        continue;
+      }
+
+      const data=await res.json();
+
+      if(data.error){
+        errors.push(`${ticker}: ${data.error.type||''} ${data.error.message||''}`);
+        console.error(ticker,'API error body',data.error);
+        continue;
+      }
+
+      // Handle both direct text and tool_use responses (web_search returns tool_result then text)
+      const rawText=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+
+      // If stop_reason is tool_use, the model is mid-search — extract text from tool_result blocks too
+      const toolResultText=(data.content||[])
+        .filter(c=>c.type==='tool_result'||c.type==='tool_use')
+        .map(c=>c.type==='tool_result'?JSON.stringify(c.content||''):'')
+        .join('');
+
+      const combinedText=rawText||toolResultText;
+
+      if(!combinedText && data.stop_reason!=='tool_use'){
+        errors.push(`${ticker}: empty response (stop=${data.stop_reason})`);
+        console.warn(ticker,'no text block',data);
+        continue;
+      }
+      if(data.stop_reason==='tool_use'&&!rawText){
+        // Search in progress but no text yet — not an error, just no results this run
+        console.log(ticker,'web search in progress, no text in this response');
+        continue;
+      }
+
+      let items=[];
+      try{
+        const m=rawText.match(/\[.*\]/s);
+        const clean=m?m[0]:rawText.replace(/^```[^\n]*\n?/,'').replace(/```$/,'').trim();
+        items=JSON.parse(clean);
+        if(!Array.isArray(items))items=[];
+      }catch(pe){
+        errors.push(`${ticker}: JSON parse — ${rawText.slice(0,60)}`);
+        console.error(ticker,'parse error',pe,rawText.slice(0,300));
+        continue;
+      }
+
+      const fresh=items.filter(item=>item&&item.url&&!readUrls.has(item.url));
+      items.forEach(item=>{if(item&&item.url)readUrls.add(item.url);});
+
+      if(fresh.length){
+        fresh.forEach(item=>{item.isNew=true;item.symbol=ticker;item.link=item.url||'#';item.sourceType='Company PR';});
+        live[ticker].catalysts=[...fresh,...(live[ticker].catalysts||[])];
+        await window.storage.set('ticker:'+ticker,JSON.stringify(live[ticker]));
+        totalNew+=fresh.length;
+      }
+    }catch(apiErr){
+      errors.push(`${ticker}: ${apiErr.message||String(apiErr)}`);
+      console.error(ticker,apiErr);
+    }
+  }
+
+  try{await window.storage.set('pit:read_urls',JSON.stringify([...readUrls]));}catch(e){}
+  buildPanes(live);
+
+  btn.style.background='';btn.style.cursor='';
+  btn.innerHTML=SVG_ICON+' Run Update';
+  const ts=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('lastUpdated').textContent='Last updated: '+ts;
+
+  if(errors.length){
+    msg.style.background='var(--rose-bg)';msg.style.color='var(--rose-text)';
+    msg.textContent=`${errors.length} error(s): ${errors[0]}`;
+    console.error('All errors:',errors);
+  } else {
+    msg.style.background='var(--teal-bg)';msg.style.color='var(--teal-text)';
+    msg.textContent=totalNew>0?`✓ ${totalNew} new item${totalNew>1?'s':''} added`:'✓ All tickers up to date';
+  }
+  setTimeout(()=>{msg.style.display='none';},8000);
+}
+
+// ─── CLEAR NEW FLAGS ─────────────────────────────────────────────────────────
+async function clearNew(){
+  for(const k of Object.keys(TICKER_DATA)){
+    try{
+      const s=await window.storage.get('ticker:'+k);
+      if(s){
+        const td=JSON.parse(s.value);
+        let changed=false;
+        (td.catalysts||[]).forEach(c=>{if(c.isNew){delete c.isNew;changed=true;}});
+        if(changed)await window.storage.set('ticker:'+k,JSON.stringify(td));
+      }
+    }catch(e){}
+  }
+  // Rebuild from cleared storage
+  const live={};
+  for(const k of Object.keys(TICKER_DATA)){
+    try{const s=await window.storage.get('ticker:'+k);live[k]=s?JSON.parse(s.value):TICKER_DATA[k];}
+    catch(e){live[k]=TICKER_DATA[k];}
+  }
+  buildPanes(live);
+}
+async function init(){
+  // Seed storage from TICKER_DATA if not already stored
+  for(const[k,v]of Object.entries(TICKER_DATA)){
+    try{const ex=await window.storage.get('ticker:'+k);if(!ex)await window.storage.set('ticker:'+k,JSON.stringify(v));}catch(e){}
+  }
+  // Load from storage (Run Update may have updated individual tickers)
+  const live={};
+  for(const k of Object.keys(TICKER_DATA)){
+    try{const s=await window.storage.get('ticker:'+k);live[k]=s?JSON.parse(s.value):TICKER_DATA[k];}
+    catch(e){live[k]=TICKER_DATA[k];}
+  }
+  buildPanes(live);
+  document.getElementById('lastUpdated').textContent='Last updated: '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+init();
+</script>
+</body>
+</html>
