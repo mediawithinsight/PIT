@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trading Workflow Log - v1.5</title>
+<style>
+:root{color-scheme:light dark;
+  --bg:#fbfbfa;--panel:#fff;--text:#1a1a1a;--text2:#3f3f46;--text3:#71717a;--border:#e5e5e5;
+  --accent:#6b21a8;--accent2:#7c3aed;--rose:#be123c;--teal:#0f766e;--code:#f4f4f5;--hbar:rgba(251,251,250,.92);--tocbg:#fff;--bq:#faf5ff;--theven:#fafafa;--thbg:#f4f4f5;}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#181818;--panel:#242424;--text:#ececec;--text2:#c4c4c4;--text3:#8f8f8f;--border:#383838;
+  --accent:#c084fc;--accent2:#d8b4fe;--rose:#fb7185;--teal:#5eead4;--code:#2b2b2b;--hbar:rgba(24,24,24,.94);--tocbg:#242424;--bq:#2a2136;--theven:#1e1e1e;--thbg:#2b2b2b;}}
+*{box-sizing:border-box;}
+html,body{overflow-x:hidden;max-width:100%;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;line-height:1.6;font-size:16px;-webkit-text-size-adjust:100%;overflow-wrap:break-word;}
+.wrap{max-width:820px;margin:0 auto;padding:0 18px 140px;}
+header.doc{position:sticky;top:0;z-index:20;background:var(--hbar);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 18px;margin:0 -18px 18px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+header.doc h1{font-size:17px;margin:0;font-weight:800;letter-spacing:-.01em;color:var(--text);}
+header.doc .ver{font-size:11px;font-weight:700;color:#fff;background:var(--accent);padding:2px 8px;border-radius:5px;}
+@media (prefers-color-scheme: dark){header.doc .ver{color:#1a1a1a;}}
+h1{color:var(--text);}
+h2{font-size:20px;margin:34px 0 10px;padding-top:12px;border-top:2px solid var(--border);font-weight:800;letter-spacing:-.01em;scroll-margin-top:70px;color:var(--text);}
+h3{font-size:15.5px;margin:22px 0 8px;font-weight:800;color:var(--text2);scroll-margin-top:70px;}
+h1+*{margin-top:0;}
+p{margin:10px 0;}
+strong,b{color:var(--text);}
+a{color:var(--accent2);text-decoration:none;}
+a:hover{text-decoration:underline;}
+code{background:var(--code);padding:1.5px 5px;border-radius:4px;font-size:.86em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text);overflow-wrap:anywhere;}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5;max-width:100%;}
+pre code{background:none;padding:0;}
+blockquote{margin:12px 0;padding:8px 14px;border-left:3px solid var(--accent2);background:var(--bq);border-radius:0 6px 6px 0;color:var(--text2);}
+table{border-collapse:collapse;max-width:100%;margin:12px 0;font-size:13.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;color:var(--text);}
+th{background:var(--thbg);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.02em;}
+tr:nth-child(even) td{background:var(--theven);}
+ul,ol{padding-left:22px;margin:10px 0;}
+li{margin:5px 0;}
+hr{border:none;border-top:1px solid var(--border);margin:26px 0;}
+.toc{background:var(--tocbg);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin:0 0 24px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.toc::before{content:'CONTENTS';display:block;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent);margin-bottom:8px;}
+.toc ul{list-style:none;padding-left:0;margin:0;}
+.toc li{margin:3px 0;}
+.toc a,.toc-link{color:var(--text2);font-weight:600;font-size:14px;display:block;padding:6px 0;cursor:pointer;}
+.toc a:active,.toc-link:active{color:var(--accent2);}
+.toc-link{-webkit-tap-highlight-color:transparent;}
+#totop{position:fixed;right:16px;bottom:16px;z-index:30;background:var(--accent);color:#fff;border:none;border-radius:50%;width:46px;height:46px;font-size:18px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;display:flex;align-items:center;justify-content:center;}
+#totop.show{opacity:.92;pointer-events:auto;}
+@media (prefers-color-scheme: dark){#totop{color:#1a1a1a;}}
+</style></head>
+<body>
+<span id="top"></span>
+<header class="doc"><h1>Trading Workflow Log</h1><span class="ver">v1.5</span></header>
+<div class="wrap">
+<h1 id="trading-workflow-log">Trading Workflow Log</h1>
+<p><strong>Version:</strong> 1.5 · 16 Jul 2026 · lock page horizontal scroll (tables still scroll internally)
+<strong>Started:</strong> 14 Jul 2026
+<strong>Purpose:</strong> A durable, auditable record of trading principles, lessons, and open questions — so the workflow can be worked <em>on</em>, not just worked <em>in</em>.</p>
+<blockquote>
+<p><strong>Why a file and not memory:</strong> memory compresses and drifts. A file can be read, challenged, edited, and versioned. If a principle here is wrong, it should be possible to find it and strike it out. That is the whole point.</p>
+</blockquote>
+<hr />
+<div class="toc">
+<ul>
+<li><span class="toc-link" data-target="1-core-framework">1. Core framework</span></li>
+<li><span class="toc-link" data-target="2-principles-established">2. Principles established</span></li>
+<li><span class="toc-link" data-target="3-data-integrity-as-a-trading-discipline">3. Data integrity as a trading discipline</span></li>
+<li><span class="toc-link" data-target="4-known-data-gaps">4. Known data gaps</span></li>
+<li><span class="toc-link" data-target="5-open-questions-to-work-through">5. Open questions to work through</span></li>
+<li><span class="toc-link" data-target="6-log-of-sessions">6. Log of sessions</span></li>
+</ul>
+</div>
+<h2 id="1-core-framework">1. Core framework</h2>
+<p><strong>Catalyst timing is the primary decision layer.</strong> Entries and exits are decided by catalysts, filings, macro, and fundamentals. Nothing else gets promoted to a decision.</p>
+<p><strong>Everything else is a review trigger.</strong> ATR breaches, volume states, relative strength, range position — these tell you <em>where to look</em>. They never tell you what to do.</p>
+<ul>
+<li>ATR stop breach → <strong>go look</strong>, not <strong>sell</strong></li>
+<li>Volume SURGE → <strong>go look</strong>, not <strong>buy</strong></li>
+<li>Range at 15% → <strong>go look</strong>, not <strong>cheap</strong></li>
+</ul>
+<p>The failure mode is leaping from signal to trade. Flagged explicitly as something to be challenged on.</p>
+<hr />
+<h2 id="2-principles-established">2. Principles established</h2>
+<h3 id="21-a-100-hit-rate-reprices-expectations">2.1 A 100% hit rate reprices expectations</h3>
+<p>A sustained drill hit rate means the market has already repriced upward. <strong>The next miss drops harder than the next hit lifts.</strong> Asymmetry builds silently during a winning streak.</p>
+<p><em>Second-order:</em> the better the run, the more fragile the position — not less.</p>
+<h3 id="22-range-position-is-a-question-generator-not-a-signal">2.2 Range position is a question generator, not a signal</h3>
+<p>Where price sits in its 20-day range means nothing on its own. The mean-reversion read ("low = good, high = bad") is first-order and is <strong>wrong for a catalyst-driven trader.</strong></p>
+<p>The real question: <strong>does the range position agree or disagree with what the catalyst timeline says should be happening right now?</strong></p>
+<ul>
+<li>Price at 20-day <em>high</em> + volume building → accumulation ahead of a catalyst, <strong>or</strong> a move already missed. Which?</li>
+<li>Price at 20-day <em>low</em> + fully-funded program → not a funding fear. <strong>So what is it?</strong></li>
+</ul>
+<p><em>Worked example (14 Jul 2026):</em>
+- RDU entry set at <strong>$0.160</strong> = exactly the 20-day high (100% of range). Entry set at the top of the range.
+- KFR at <strong>15% of range</strong>, filings confirm 2026 program explicitly fully funded. Cheap — or the market knows something not yet priced in.</p>
+<p><strong>Open:</strong> neither has been checked against the catalyst timeline. That check is the missing step.</p>
+<h3 id="23-a-plan-whose-stop-fires-before-its-entry-is-not-a-plan">2.3 A plan whose stop fires before its entry is not a plan</h3>
+<p>If the trailing stop sits <em>above</em> the level you intend to add at, you would be stopped out before the entry is ever reached. <strong>The plan contradicts itself.</strong></p>
+<p>Live examples (14 Jul 2026):
+| | Add at | Trailing stop | Price |
+|---|---|---|---|
+| ANDC | $1.05 | $1.228 | $1.170 |
+| RAK | $0.140 | $0.161 | $0.145 |</p>
+<p>Both flagged by the tool. Neither resolved.</p>
+<h3 id="24-core-locking-changes-what-a-stop-breach-means">2.4 Core-locking changes what a stop breach means</h3>
+<p>ANDC and RAK are <strong>fully core-locked</strong> — meaning they will not be sold regardless of the stop.</p>
+<p><strong>Open question, unresolved:</strong> what does an ATR breach on a fully core-locked position actually tell you? Is it still information, or is it noise you have already decided to ignore? If the latter, should the tool still show it?</p>
+<h3 id="25-three-independent-signals-converging-is-the-framework-working">2.5 Three independent signals converging is the framework working</h3>
+<p><strong>Trade: 14 Jul 2026 — SOLD CRCL 36,000 @ $0.150 (RRSP). Proceeds $5,400. Realized +$360.</strong>
+Remaining: 25,000 shares (11,000 core-locked). Avg cost $0.140.</p>
+<p>The decision came from <strong>three signals that agreed, none of which was a price signal:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What it said</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Position Intelligence (PIT)</strong></td>
+<td>Far too overweight for a name being <em>swing traded</em>, not held</td>
+</tr>
+<tr>
+<td><strong>Volume</strong></td>
+<td>FADING — 7,000 vs 137,787 avg. <strong>5% of normal.</strong> No liquidity to exit into later.</td>
+</tr>
+<tr>
+<td><strong>Filings</strong></td>
+<td>&lt;1 quarter runway · Phase II unfunded · financing near · Yuma King is a <em>lease</em>, not ownership</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The principle:</strong> conviction should come from <em>independent</em> layers agreeing, not from one layer shouting. A chart signal alone is one layer. Position size + volume + balance sheet is three — and they were saying the same thing.</p>
+<p><strong>The uncomfortable part, for honesty:</strong> the exit was at $0.150, which was <strong>100% of the 20-day range</strong> ($0.120–$0.150). The execution was excellent. But was it <em>timed</em>, or was it luck that the overweight/volume/financing conclusion happened to land on a local high? Worth being honest about which — because only one of those is repeatable.</p>
+<p><strong>Second-order note:</strong> the position was reduced but <em>not</em> closed, and 11,000 remain core-locked. If the financing thesis is right, the remaining 25,000 face the same dilution. <strong>Why does a name you consider too risky to hold at size, and are swing trading rather than holding, have a core lock on it at all?</strong> Unresolved.</p>
+<h3 id="26-warrant-overhang-is-a-velocity-cap">2.6 Warrant overhang is a velocity cap</h3>
+<p>When a stock rallies, its own <strong>in-the-money warrants become exercisable supply into that rally.</strong> The rally creates the very selling that caps it.</p>
+<p><strong>Consequence:</strong> a name with heavy ITM warrant overhang does not move the way a clean one does, <em>even if the news is identical</em>. CGNT carries the largest overhang in the basket. RAK carries <strong>zero warrants on fully staked properties.</strong></p>
+<p><strong>Second-order:</strong> this reorders the basket independently of geology. Two identical drill results produce two different price responses depending on the cap table.</p>
+<h3 id="27-correlated-binaries-the-basket-is-less-diversified-than-it-looks">2.7 Correlated binaries — the basket is less diversified than it looks</h3>
+<p><strong>ANDC, KFR and BIG all print within ~6 weeks of each other.</strong></p>
+<p>A miss on any one <strong>sours sentiment on the others regardless of geology.</strong> Junior mining sentiment is not name-specific; a bad print in the sector drains the bid across it.</p>
+<p><strong>This means the basket carries a hidden concentration</strong> — not in commodity or jurisdiction, but in <em>timing</em>. Ten tickers is not ten independent bets when three of them resolve in the same window into the same audience.</p>
+<p><strong>Question worth sitting with:</strong> is the position sizing on ANDC/KFR/BIG set as if they were independent? If so, the real exposure is larger than the allocation bars suggest.</p>
+<h3 id="28-balance-sheet-quality-is-the-hidden-ranking">2.8 Balance-sheet quality is the hidden ranking</h3>
+<p><strong>Cash + runway + warrant overhang + going-concern level often reorder a basket more than geology does.</strong></p>
+<p>Established from the filings work:
+| Ticker | Finding |
+|---|---|
+| <strong>RAK</strong> | No going-concern qualification · <strong>zero warrants</strong> · fully staked properties |
+| <strong>KFR</strong> | 2026 program <strong>explicitly fully funded</strong> per filing |
+| <strong>CRCL</strong> | <strong>&lt;1 quarter runway</strong> · Yuma King is a <strong>lease, not ownership</strong> |
+| <strong>CGNT</strong> | <strong>Largest warrant overhang</strong> in the basket |
+| <strong>OGW</strong> | The <strong>only ticker carrying debt</strong> |</p>
+<p><strong>The principle:</strong> good news does not pay the bills. A great hole in a company with one quarter of runway means a financing at a price the market sets, not you. <em>(This is precisely what drove the CRCL trim — §2.5.)</em></p>
+<h3 id="29-expectations-repricing-where-it-currently-applies">2.9 Expectations repricing — where it currently applies</h3>
+<p>Restating §2.1 with the live names: <strong>ANDC (9/9 hits) · KFR ("ended in increasing grades") · BIG (Hook publicly comped to Leviathan).</strong></p>
+<p>All three have had their success narrative <em>already priced</em>. All three print within six weeks (§2.7). <strong>The asymmetry and the correlation compound.</strong></p>
+<hr />
+<h3 id="210-core-is-additive-you-do-not-swing-inside-a-high-conviction-position">2.10 Core is additive — you do not swing inside a high-conviction position</h3>
+<p>Established on the 14 Jul drive, working through ANDC (avg cost ~47¢, trading ~$1.17, thesis $2.00).</p>
+<p><strong>The trap of swinging inside the core:</strong> sell at $1.20, buy back at $1.10, and you have captured 10¢ — but you have also <em>ratcheted your average cost up</em> and taken on execution risk. Do it a few times and the cost-basis creep eats the captured pennies. And if the stock rips $1.17 → $1.90 without giving you the dip, <strong>you miss the entire move while sitting in cash waiting to re-buy.</strong></p>
+<p><strong>The maths only works if you need a small swing.</strong> At high conviction (thesis worth ~60¢ of upside), you would need five or six <em>perfect</em> cycles to match simply holding — and one mistimed exit erases the edge. So:</p>
+<blockquote>
+<p><strong>At high conviction, small swings inside the core lose to holding.</strong> Core is where you <em>add</em> on thesis-aligned dips, not where you trade volatility.</p>
+</blockquote>
+<p><strong>The trim exception:</strong> if a core name spikes well ahead of its next catalyst (e.g. $1.50 on news with nothing due for weeks), trimming <em>the spike</em> is position-size management, not swing trading. The test: are you selling to manage size, or to capture a wiggle? Only the first belongs in the core account.</p>
+<h3 id="211-the-expensive-lesson-selling-out-of-fear-named">2.11 The expensive lesson — selling out of fear, named</h3>
+<p><strong>ANDC, past:</strong> held ~15,000–18,000 shares at 65¢. It ran to $1.00, fell back toward cost, and — following a self-imposed "never lose money on a trade" rule — <strong>sold near breakeven. It then ripped back up.</strong></p>
+<p>Cost basis today is ~99¢ instead of the 65¢ it would have been. <strong>The sale was driven by fear of a further drop, not by any change in the thesis.</strong> That is the exact failure mode §2.10 and §1.6 (RRSP-core) are built to prevent.</p>
+<blockquote>
+<p><strong>High conviction means you live with the dips.</strong> A stop that fires on price alone, on a position whose thesis is intact, is selling the thesis to avoid discomfort. If the conviction is real, the dip is an add, not an exit.</p>
+</blockquote>
+<h3 id="212-a-relative-strength-badge-is-a-signal-not-a-quality-upgrade-rdu">2.12 A relative-strength badge is a signal, not a quality upgrade — RDU</h3>
+<p>On the 14 Jul drive the recollection was that RDU had been <em>reranked from low to high quality</em>. Checked against both sources available in this chat:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What it actually says about RDU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PIT (baked file)</strong></td>
+<td>Recommended allocation <strong>downgraded 26.3% → 10%</strong> on the <strong>auditor-level going-concern flag</strong> — the harshest signal in the basket. GREM permit is a <em>double-edged</em> catalyst: it starts a US$5M clock against ~$1.4M cash.</td>
+</tr>
+<tr>
+<td><strong>RBS (baked file)</strong></td>
+<td>RDU carries the <strong>strongest relative strength in the basket: RS +28.7%, volume BUILDING.</strong> ATR stop $0.143 (ok, not breached).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>These do not contradict — they are different layers.</strong> The RS badge is a <strong>review trigger</strong> (RDU is outperforming GDXJ hard), <em>not</em> a quality verdict. The fundamental downgrade is the <strong>decision layer</strong> (auditor going-concern + cash-vs-clock). Per the core rule — <em>ATR/volume/RS are review triggers, not sell/buy signals</em> — the strong RS is exactly the thing that should make you <em>look</em>, then the fundamentals decide.</p>
+<p><strong>What could genuinely re-rank RDU up</strong> (none of it in the files yet, all raised on the drive): Peru's new right-wing president (Keiko Fujimori, declared 3 Jul 2026) possibly easing the GREM path — though her razor-thin, contested win makes any pro-mining tailwind uncertain; the chairman's on-site visit signalling governance momentum; a firmer permit-completion date turning the $5M clock from "crisis" into "manageable within window." <strong>These are real potential catalysts — but they are unlogged.</strong> Until they are sourced and baked, RDU's decision layer still reads <em>auditor going-concern, 10%</em>.</p>
+<blockquote>
+<p><strong>Open action:</strong> source the Peru political shift and the permit timeline, then re-run RDU's ranking with that context. The RS badge earned RDU a look; the catalysts — if confirmed — are what would change the verdict.</p>
+</blockquote>
+<h3 id="213-buying-when-the-technicals-disagree-with-the-thesis-feo">2.13 Buying when the technicals disagree with the thesis — FEO</h3>
+<p>15 Jul 2026: bought Oceanic (FEO) RRSP 8,000 @ $0.65 — the <strong>first trade taken off a watch tab</strong>, researched in PIT before buying (the workflow J built the tool to enforce).</p>
+<p>Every momentum signal was <em>against</em> the entry:
+| Signal | Reading | What it usually says |
+|---|---|---|
+| 20-day range position | <strong>0%</strong> (bottom of 0.63–0.88) | "falling knife" |
+| Relative strength | <strong>−7.5%</strong> (worst in basket) | "lagging the sector" |
+| 20-day change | <strong>−21.3%</strong> | "downtrend" |
+| Volume | <strong>BUILDING, trend 3.38×</strong> | heavy participation at the low — capitulation <em>or</em> accumulation |</p>
+<p><strong>This is not a contradiction to resolve — it's the framework working.</strong> Per the core rule (§2.2, and the ATR/RS-are-review-triggers principle), momentum signals are <em>questions</em>, not decisions. The decision rests on the thesis: FEO has the <strong>strongest balance sheet in the basket</strong> ($50.6M cash, recapitalized, no going concern), trades <strong>below the $0.75 raise price</strong>, and its re-rate catalyst is a <strong>developer-timeline PFS</strong>. That is a <em>value/position entry</em>, not a momentum swing — so weak momentum is <em>expected</em>, even desirable (you're buying what the sector is discarding).</p>
+<p><strong>The discipline it demonstrates:</strong> the tool made J look at the disagreement <em>before</em> buying instead of discovering it after. The signals didn't veto the trade; they defined what has to be true for it to work — <strong>the balance sheet buys time for the catalyst, and the entry only fails if the PFS/partner catalyst never comes.</strong> By §1.6 this is an <strong>RRSP-core / position</strong> hold, not a TFSA swing — consistent with where it landed.</p>
+<blockquote>
+<p><strong>Second-order watch:</strong> the BUILDING volume (3.38× trend) at the low is the one signal that <em>could</em> be information rather than noise. Heavy volume into a bottom is either capitulation (sellers exhausting) or distribution (informed selling). Which one resolves over the next few weeks is worth watching — not to trade on, but to confirm the thesis isn't missing something the tape knows.</p>
+</blockquote>
+<hr />
+<h2 id="3-data-integrity-as-a-trading-discipline">3. Data integrity as a trading discipline</h2>
+<p>The recurring theme across every session: <strong>the danger is never wrong data. It is wrong data that does not announce itself.</strong></p>
+<ul>
+<li>Stale state that looks current</li>
+<li>Silent write failures (<code>catch(e){}</code>)</li>
+<li>A field that accepts your typing and discards it</li>
+<li>Derived values presented as if they were entered</li>
+</ul>
+<p>Each of these produces a number you would act on with full confidence. <strong>Instinct to preserve: catching stale entries, future-dated records, wrong resolved dates, negative reconciliations.</strong> That instinct has caught real errors repeatedly.</p>
+<hr />
+<h2 id="4-known-data-gaps">4. Known data gaps</h2>
+<table>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Impact</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RDU + RAK pre-2026 transaction history missing</td>
+<td>Negative share reconciliation; last-buy dates used as approximation</td>
+<td><strong>Open</strong></td>
+</tr>
+<tr>
+<td>RAK high-water anchor $0.190 (12 Mar 2026)</td>
+<td>The Chandelier stop is arithmetically correct but trails from an anchor resting on incomplete data</td>
+<td><strong>Open</strong></td>
+</tr>
+<tr>
+<td>Full 2025 transaction history</td>
+<td>Blocks realized P&amp;L tracking and "since last flat" high-water anchoring</td>
+<td><strong>Open</strong></td>
+</tr>
+<tr>
+<td>ANDC</td>
+<td>Reconciled perfectly against broker history</td>
+<td>✓ Clean</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-open-questions-to-work-through">5. Open questions to work through</h2>
+<ol>
+<li><strong>The core-lock / stop-breach question</strong> (§2.4) — still unanswered.</li>
+<li><strong>Does the catalyst timeline agree with the range position</strong> for RDU and KFR? (§2.2)</li>
+<li><strong>NLR sell staged at $0.140 with the stock at $0.115</strong> — a GTC limit at target, or an error?</li>
+<li><strong>CANX target $20.00 vs entry $0.28</strong> — 71x. Confirmed, or a typo for $2.00?</li>
+<li><strong>Why is CRCL core-locked at all</strong> if it's a swing trade you consider overweight and financing-exposed? (§2.5)</li>
+<li>~~<strong>Is ANDC/KFR/BIG sizing set as if they were independent?</strong>~~ <strong>Answered 14 Jul drive:</strong> yes, they <em>were</em> sized independently — which understated the real exposure to the shared 6-week window. Resolution: ANDC and KFR are treated as <strong>RRSP-core additive</strong> plays where the 6-week sentiment dip is noise to hold through; <strong>BIG and lower-conviction names</strong> are where swing money and timing-risk management belong. (§2.7, §1.6, §2.10)</li>
+<li><strong>Source RDU's Peru catalyst + permit timeline</strong>, then re-rank. The RS +28.7% badge earned it a look; the auditor going-concern keeps it at 10% until the catalysts are confirmed and baked. (§2.12)</li>
+<li><strong>RAK's Lentung tungsten pivot</strong> — comparables analysis vs Almonty (TSX:AII, Sangdong), Tungsten West (ASX:TW1, Hemerdon), and the mothballed Cantung mine. <strong>Pending.</strong></li>
+</ol>
+<hr />
+<h2 id="6-log-of-sessions">6. Log of sessions</h2>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Focus</th>
+<th>What changed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14 Jul 2026</td>
+<td>Storage persistence; 20-day range added to RBS</td>
+<td><code>window.storage</code> proven dead on iOS; IndexedDB adopted. Range position established as a <em>question generator</em>, not a signal.</td>
+</tr>
+<tr>
+<td>14 Jul 2026</td>
+<td><strong>CRCL trim executed</strong></td>
+<td>First trade taken off the PIT/RBS framework rather than a chart. Three converging layers. Logged as §2.5.</td>
+</tr>
+<tr>
+<td>14 Jul 2026</td>
+<td>Analytical frameworks consolidated</td>
+<td>Warrant overhang as velocity cap · correlated binaries · balance-sheet as hidden ranking (§2.6–2.9)</td>
+</tr>
+<tr>
+<td>15 Jul 2026</td>
+<td><strong>FEO bought — first trade off a watch tab</strong></td>
+<td>Researched Oceanic in PIT <em>before</em> buying (the workflow flip). RRSP 8,000 @ $0.65. Notable: the technicals <em>disagree</em> with the entry — bought at 0% of the 20-day range (0.63–0.88), RS −7.5% (worst in basket), 20-day chg −21.3%. Volume BUILDING (trend 3.38× — heavy participation at the low). This is a value/position entry on the strongest balance sheet in the basket, not a momentum swing — the technicals-vs-thesis disagreement is the framework working, not a red flag. See §2.13.</td>
+</tr>
+<tr>
+<td>14 Jul 2026</td>
+<td><strong>Drive session — account roles + core discipline</strong></td>
+<td>RRSP=core / TFSA=swing landed (§1.6 ops manual). Core-is-additive established (§2.10). ANDC fear-sale lesson named (§2.11). RDU "upgrade" traced to an RS badge, not a rerank (§2.12). ANDC/KFR/BIG independence question answered (Q6).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Append, don't overwrite. If a principle turns out to be wrong, strike it through rather than delete — the wrong ones are how the workflow gets better.</em></p>
+</div>
+<button id="totop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+<script>
+// Intercept in-page anchor clicks and scroll directly. Without this, the
+// sandboxed iframe resolves "#slug" against its full URL and the host shows
+// an "Open Link" dialog instead of scrolling.
+document.addEventListener('click',function(e){
+  var t=e.target.closest('.toc-link');
+  if(!t)return;
+  e.preventDefault();
+  var id=t.getAttribute('data-target');
+  var el=id?document.getElementById(id):null;
+  if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); }
+  else{ window.scrollTo({top:0,behavior:'smooth'}); }
+});
+var b=document.getElementById('totop');
+window.addEventListener('scroll',function(){ if(window.scrollY>400)b.classList.add('show');else b.classList.remove('show'); });
+</script>
+</body></html>

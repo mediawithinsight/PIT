@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rebalance & Buy Scenarios</title>
+<style>
+:root{
+  --bg:#ffffff;--panel:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --teal-bg:#f0fdfa;--teal:#0d9488;--teal-text:#0f766e;
+  --ora-bg:#fff7ed;--ora:#ea580c;--ora-text:#c2410c;
+  --rose-bg:#fff1f2;--rose:#f43f5e;--rose-text:#be123c;
+  --sky-bg:#f0f9ff;--sky:#0369a1;--sky-text:#075985;
+  --amber-bg:#fffbeb;--amber:#d97706;--amber-text:#92400e;
+}
+*{box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f8fafc;color:var(--text);margin:0;padding:0;}
+.hdr{background:#000;color:#fff;padding:22px 28px 18px;}
+.hdr-top-row{display:flex;justify-content:space-between;align-items:flex-start;}
+.hdr-eyebrow{font-size:10px;font-weight:700;letter-spacing:.25em;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;}
+.hdr-main{font-size:36px;line-height:1.05;font-weight:300;letter-spacing:-.02em;color:#fff;margin-top:2px;}
+.hdr-main b{font-weight:800;color:#fff;}
+.hdr-sub{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25;text-align:right;margin-top:2px;}
+.hdr-sub .hs-label{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;}
+.hdr-sub .hs-val{font-size:10.5px;color:#94a3b8;font-weight:600;}
+.ver-badge{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:#94a3b8;border:1px solid #334155;border-radius:4px;padding:2px 7px;white-space:nowrap;}
+.view-toggle{display:flex;border:1px solid #334155;border-radius:6px;overflow:hidden;}
+.view-toggle button{background:transparent;border:none;color:#94a3b8;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:4px 9px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}
+.view-toggle button+button{border-left:1px solid #334155;}
+.view-toggle button.active{background:#334155;color:#fff;}
+.view-toggle button:not(.active):hover{background:#1e293b;color:#cbd5e1;}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;}
+@media(max-width:640px){.hdr{padding:16px 16px 14px;}.hdr-main{font-size:26px;}.hdr-sub{font-size:10.5px;}}
+.card-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:8.5px;color:var(--text3);background:#f1f5f9;border:1px solid var(--border);border-radius:4px;padding:1px 5px;display:inline-block;margin-left:6px;vertical-align:middle;}
+.exch-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:#e2e8f0;color:#475569;display:inline-block;vertical-align:middle;}
+.review-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;display:inline-flex;align-items:center;gap:4px;vertical-align:middle;cursor:help;letter-spacing:.03em;}
+.review-badge .rb-atr{font-size:7.5px;font-weight:800;padding:1px 3px;border-radius:3px;background:#3730a3;color:#fff;letter-spacing:.03em;}
+/* Volume is DIRECTIONALLY NEUTRAL — a surge can be panic selling or
+   accumulation. So these colours signal INTENSITY (loud vs quiet), never
+   sentiment. Direction is RS's job, and it has its own green/red. */
+.vol-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:var(--text3);border:1px solid var(--border);display:inline-block;vertical-align:middle;cursor:help;letter-spacing:.03em;}
+.vol-badge.hot{background:var(--amber-bg);color:var(--amber-text);border-color:#fcd34d;}      /* SURGE — attention */
+.vol-badge.building{background:var(--teal-bg);color:var(--teal-text);border-color:#99f6e4;}   /* BUILDING */
+.vol-badge.fading{background:#f1f5f9;color:#64748b;border-color:#cbd5e1;}                     /* FADING */
+.vol-badge.cold{background:#f8fafc;color:#cbd5e1;border-color:#f1f5f9;}                       /* DORMANT */
+.rs-badge{position:relative;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle;cursor:pointer;letter-spacing:.03em;border:1px solid;}
+.rs-badge.up{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
+.rs-badge.down{background:var(--rose-bg);color:var(--rose-text);border-color:#fecdd3;}
+.rs-badge .info-i{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:50%;border:1px solid currentColor;font-size:8px;font-weight:800;font-style:italic;flex:none;}
+.rs-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:50;width:290px;background:#fff;border:1px solid var(--border2);border-radius:10px;box-shadow:0 10px 30px rgba(15,23,42,.16);padding:12px 13px;text-align:left;cursor:default;white-space:normal;}
+.rs-badge.open .rs-pop{display:block;}
+.rs-pop-title{display:block;font-size:11px;font-weight:800;color:var(--text);margin-bottom:8px;letter-spacing:0;}
+.rs-pop-eq{display:flex;justify-content:space-between;font-size:10.5px;font-weight:500;color:var(--text2);padding:3px 0;letter-spacing:0;text-transform:none;}
+.rs-pop-eq b{color:var(--text);font-weight:800;}
+.rs-pop-res{border-top:1px solid var(--border);margin-top:3px;padding-top:5px;}
+.rs-pop-body{display:block;font-size:10.5px;line-height:1.6;color:var(--text2);margin-top:9px;font-weight:400;letter-spacing:0;text-transform:none;}
+.rs-pop-body b{color:var(--text);}
+.rs-pop-ex{display:block;margin-top:4px;padding-left:2px;color:var(--text2);}
+.rs-pop-foot{display:block;font-size:9px;color:var(--text3);margin-top:10px;padding-top:7px;border-top:1px solid var(--border);letter-spacing:0;text-transform:none;font-weight:400;}
+@media(max-width:640px){
+  /* The popover was anchored to the BADGE, so it inherited whatever
+     horizontal position the badge happened to sit at — which pushed it off
+     the viewport on a narrow screen. Neutralising the badge's positioning
+     context lets the popover anchor to .pos-card instead, so it's always
+     inside the card bounds no matter where the badge sits. */
+  .rs-badge{position:static;}
+  .rs-pop{
+    left:8px; right:8px; width:auto;
+    top:64px;              /* just below the card's header band */
+    max-height:55vh; overflow-y:auto;
+  }
+  /* Keep VOL + RS + ATR on ONE row on narrow screens: shrink the type and
+     padding rather than letting them wrap into a stack. */
+  .pos-signals{gap:4px;flex-wrap:nowrap;}
+  .vol-badge,.rs-badge,.review-badge{font-size:8px;padding:2px 4px;letter-spacing:0;white-space:nowrap;}
+  .rs-badge .info-i{width:10px;height:10px;font-size:7px;}
+  .review-badge .rb-atr{font-size:6.5px;padding:1px 2px;}
+  .exch-badge{font-size:9px;padding:1px 5px;}
+  .pos-name{display:none;}  /* company name is redundant next to the ticker on mobile */
+}
+.atr-tag{font-size:7.5px;font-weight:700;padding:1px 3px;border-radius:3px;background:#e0e7ff;color:#3730a3;letter-spacing:.03em;vertical-align:middle;}
+.acct-name[data-acct-toggle]{cursor:pointer;user-select:none;}
+.acct-collapse{background:none;border:none;cursor:pointer;color:inherit;padding:0;display:inline-flex;align-items:center;vertical-align:middle;flex:none;}
+.wrap{max-width:1200px;margin:0 auto;padding:16px;}
+
+.cashbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+.cash-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.cash-card.rrsp{background:var(--sky-bg);}
+.cash-card.tfsa{background:var(--teal-bg);}
+.cash-card.rrsp label{color:var(--sky-text);}
+.cash-card.tfsa label{color:var(--teal-text);}
+.cash-card label{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.cash-card input{width:100%;border:1px solid var(--border2);border-radius:6px;padding:7px 9px;font-size:18px;font-weight:800;color:var(--text);}
+.cash-card .hint{font-size:9.5px;color:var(--text3);margin-top:4px;}
+.cash-card .cash-dollar{background:#fff;}
+.cash-card .cash-dollar .dollar-sign{font-size:18px;font-weight:800;color:var(--text);padding:7px 2px 7px 9px;}
+.cash-card .cash-dollar input{font-size:18px;font-weight:800;padding:7px 9px 7px 2px!important;text-align:left;}
+/* Item 3: card IDs hidden for now — kept in the DOM (not deleted) so we can
+   re-enable them instantly by flipping this one rule if we need to reference
+   a specific card in conversation again. */
+.card-id{display:none!important;}
+.cash-breakdown{font-size:10px;color:var(--text2);margin-top:7px;line-height:1.7;border-top:1px dashed var(--border);padding-top:6px;}
+.cash-breakdown .cb-row{display:flex;justify-content:space-between;}
+.cash-breakdown .cb-row span:first-child{text-transform:uppercase;letter-spacing:.04em;font-size:9px;}
+.cash-breakdown .cb-total{font-weight:800;color:var(--text);border-top:1px solid var(--border);margin-top:3px;padding-top:3px;}
+
+.accounts{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:860px){.accounts{grid-template-columns:1fr;}}
+
+.acct-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.acct-hdr{padding:14px 16px;border-bottom:1px solid var(--border);}
+.acct-hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.acct-cash{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+.acct-cash>label{display:block;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.acct-cash .cash-dollar{background:#fff;max-width:220px;border-radius:8px;}
+.acct-cash .cash-dollar .dollar-sign{font-size:16px;font-weight:800;color:var(--text);padding:6px 2px 6px 9px;}
+.acct-cash .cash-dollar input{font-size:16px;font-weight:800;padding:6px 9px 6px 2px!important;text-align:left;}
+.acct-cash .cash-breakdown{max-width:340px;}
+.acct-hdr.rrsp{background:var(--sky-bg);}
+.acct-hdr.tfsa{background:var(--teal-bg);}
+.acct-name{font-size:22px;font-weight:800;display:flex;align-items:center;gap:5px;}
+.acct-hdr.rrsp .acct-name{color:var(--sky-text);}
+.acct-hdr.tfsa .acct-name{color:var(--teal-text);}
+.acct-stats{font-size:11px;color:var(--text2);text-align:right;line-height:1.5;text-transform:uppercase;letter-spacing:.04em;}
+.acct-stats b{color:var(--text);text-transform:none;letter-spacing:0;}
+.acct-body{padding:10px;}
+
+.section-lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:12px 6px 6px;}
+
+.pos-card{position:relative;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;}
+.portfolio-summary{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+.ps-hdr{display:flex;gap:24px;flex-wrap:wrap;}
+.ps-stat{display:flex;flex-direction:column;}
+.ps-stat .ps-label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:2px;}
+.ps-stat b{font-size:16px;color:var(--text);}
+.ps-sub{font-size:11px;color:var(--text2);margin-top:6px;}
+.alloc-bar{display:flex;height:22px;border-radius:5px;overflow:hidden;}
+.alloc-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:9.5px;font-weight:700;white-space:nowrap;overflow:hidden;min-width:2px;}
+.ps-tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.ps-tbl th{text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);padding:6px 8px;border-bottom:2px solid var(--border);white-space:nowrap;}
+.ps-tbl td{padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.ps-tbl tr.ps-consol{background:#f8fafc;}
+.ps-tbl tr.ps-consol td{border-top:1px solid var(--border2);border-bottom:2px solid var(--border2);}
+.ps-foot{font-size:10.5px;color:var(--text3);margin-top:10px;line-height:1.5;}
+.pos-top{margin:-10px -12px 10px;padding:10px 12px;border-radius:9px 9px 0 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.pos-ident{min-width:0;flex:1;}
+.pos-ident-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.pos-signals{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.collapse-toggle{background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;display:flex;align-items:center;}
+.collapse-toggle:hover{color:var(--text);}
+.card-collapse{background:none;border:none;cursor:pointer;color:var(--text3);padding:0 4px 0 0;margin:0;display:inline-flex;align-items:center;flex-shrink:0;}
+.card-collapse:hover{color:var(--text);}
+.card-collapse svg{transition:transform .15s;}
+.pos-card.is-collapsed .pos-top{margin-bottom:-10px;border-bottom:none;}
+.pos-ticker{font-size:14px;font-weight:800;}
+.pos-name{font-size:10.5px;color:var(--text3);}
+.pos-sub{font-size:12px;font-weight:700;color:#334155;text-align:right;}
+
+
+.cash-card.norm{background:#f8fafc;}
+.cash-card.norm label{color:#475569;}
+.cash-card.norm input{width:100%;border:1px solid var(--border2);border-radius:6px;padding:7px 9px;font-size:16px;font-weight:800;color:var(--text);}
+.norm-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;text-transform:uppercase;}
+.norm-strip .ns-cell{display:flex;flex-direction:column;gap:1px;}
+.norm-strip .ns-l{font-size:8.5px;font-weight:700;letter-spacing:.03em;color:#64748b;}
+.norm-strip .ns-v{font-size:12px;font-weight:800;color:var(--text);}
+.norm-strip .ns-sub{font-size:8.5px;color:var(--text3);}
+.norm-strip .ns-foot{grid-column:1/-1;margin-top:5px;padding-top:5px;border-top:1px dashed #e2e8f0;font-size:9.5px;color:var(--text3);text-align:center;}
+.norm-strip .ns-foot b{color:var(--text2);font-weight:800;}
+.norm-strip .ns-runway{grid-column:1/-1;margin-top:6px;padding-top:6px;border-top:1px dashed #e2e8f0;font-size:11px;font-weight:700;text-align:center;letter-spacing:.02em;}
+.norm-strip .ns-runway b{font-weight:800;}
+.norm-strip .rw-est{font-size:8px;font-weight:800;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px;letter-spacing:.03em;}
+.pos-topright{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none;}
+.mtt-toggle{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:800;letter-spacing:.05em;color:var(--text3);cursor:pointer;text-transform:uppercase;}
+.mtt-toggle input{width:12px;height:12px;accent-color:#94a3b8;margin:0;cursor:pointer;flex:none;}
+.mini-row.sell-row{grid-template-columns:auto 1fr 1fr 1fr;}
+.sell-warn{display:none;margin-top:6px;padding:5px 8px;font-size:9.5px;font-weight:800;color:#be123c;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;letter-spacing:.02em;line-height:1.35;text-transform:uppercase;}
+.pos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;font-size:10.5px;}
+.pos-grid div label{display:block;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.04em;}
+.pos-grid div input{width:100%;border:1px solid var(--border);border-radius:5px;padding:2px 4px;font-size:16px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;margin-top:2px;}
+
+.pos-toggles{display:flex;gap:14px;margin-top:9px;align-items:center;flex-wrap:wrap;}
+.pos-toggles label{font-size:10.5px;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text2);}
+.rr-badge{font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;margin-left:auto;}
+.rr-badge.good{background:var(--teal-bg);color:var(--teal-text);}
+.rr-badge.bad{background:var(--rose-bg);color:var(--rose-text);}
+
+.scenario-tabs{display:flex;gap:4px;margin-top:9px;}
+.scenario-tabs button{flex:1;font-size:9.5px;font-weight:700;padding:5px 4px;border-radius:5px;border:1px solid var(--border);background:#f8fafc;color:var(--text2);cursor:pointer;text-transform:uppercase;letter-spacing:.03em;}
+.scenario-tabs button.active{background:#000;color:#fff;border-color:#000;}
+
+.scenario-body{margin-top:8px;padding:8px;background:#f8fafc;border-radius:7px;font-size:10.5px;}
+.scenario-body .row{display:flex;justify-content:space-between;padding:2px 0;}
+.scenario-body .row span:first-child{text-transform:uppercase;font-size:9px;letter-spacing:.05em;color:var(--text3);}
+.scenario-body .row b{color:var(--text);}
+.scenario-body .row b.pos{color:#16a34a;}
+.scenario-body .row b.neg{color:var(--rose-text);}
+.scenario-body input.amt{width:96px;border:1px solid var(--border2);border-radius:5px;padding:2px 6px;font-size:16px;text-align:right;}
+/* A type="number" input cannot contain a "$" character — the browser strips
+   non-numeric input. So instead the $ is a sibling span sitting inside a
+   wrapper that carries the border, making the pair read as one field. */
+.dollar-field{display:flex;align-items:center;border:1px solid var(--border2);border-radius:5px;background:#fff;overflow:hidden;}
+.dollar-field .dollar-sign{padding:3px 2px 3px 6px;font-size:11px;color:var(--text);font-weight:700;}
+.dollar-field input{border:none!important;border-radius:0!important;flex:1;min-width:0;padding:3px 6px 3px 1px!important;text-align:right;background:transparent;}
+.dollar-field input:focus{outline:none;}
+.dollar-field:focus-within{border-color:var(--text3);}
+.scenario-body .row .dollar-field{width:90px;}
+
+.empty-slot{border:1.5px dashed var(--border2);border-radius:10px;padding:14px;text-align:center;color:var(--text3);font-size:11px;}
+
+.pos-grid select{width:100%;border:1px solid var(--border);border-radius:5px;padding:4px 5px;font-size:12px;font-family:inherit;background:#fff;color:var(--text);margin-top:2px;}
+.entry-total{font-size:9px;color:var(--text3);margin-top:4px;display:flex;flex-direction:row;align-items:baseline;gap:5px;justify-content:flex-start;}
+.entry-total .et-label{white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;}
+.entry-total .et-value{font-weight:700;color:var(--text2);font-size:10.5px;}
+.rr-dollar{font-size:9px;color:var(--text3);margin-top:3px;min-height:24px;display:flex;flex-direction:column;justify-content:flex-start;}
+.rr-dollar .rd-label{white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;}
+.rr-dollar .rd-value{font-weight:700;font-size:10.5px;}
+.rr-dollar .rd-value.neg{color:var(--rose-text);}
+.rr-dollar .rd-value.pos{color:#16a34a;}
+.mini-row{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:stretch;margin-top:9px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:10.5px;}
+.mini-row>div{display:flex;flex-direction:column;}
+.mini-row label{display:block;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.04em;text-align:center;min-height:12px;margin-bottom:3px;}
+.mini-row .ctl{flex:1;display:flex;align-items:center;justify-content:center;min-height:24px;}
+.mini-row input{width:100%;border:1px solid var(--border);border-radius:5px;padding:2px 4px;font-size:16px;text-align:center;}
+.mini-row input[type="checkbox"]{width:auto;margin:0;}
+.mini-row[data-row="core"] input[type="checkbox"]{accent-color:#0f172a;}
+.mini-row[data-row="sell"] input[type="checkbox"]{accent-color:#dc2626;}
+.mini-row input:disabled{background:#f1f5f9;color:var(--text3);}
+.mini-row b{font-size:12px;font-weight:800;color:var(--text);}
+.mini-row.core-locked{background:#e2e8f0;border-color:#0f172a;border-width:1.5px;}
+.mini-row.core-locked label{color:#0f172a;}
+.mini-row.core-locked input[type="checkbox"]{accent-color:#0f172a;}
+.mini-row.sell-locked{background:var(--rose-bg);border-color:#dc2626;border-width:1.5px;}
+.mini-row.sell-locked label{color:#b91c1c;}
+.mini-row.sell-locked input[type="checkbox"]{accent-color:#dc2626;}
+.movetop-check{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--text2);cursor:pointer;}
+
+
+/* --- storage status: never silent --- */
+.st-badge{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25;text-align:right;}
+.st-badge .st-label{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;}
+.st-badge .st-val{font-size:10.5px;font-weight:800;}
+.st-badge.ok .st-val{color:#34d399}
+.st-badge.bad .st-val{color:#f87171}
+.st-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+/* --- per-card staleness: the book moved under your scenario --- */
+.stale-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;
+  color:#92400e;font-size:11px;line-height:1.4;padding:7px 10px;border-radius:6px;margin:8px 0}
+.stale-strip b{font-weight:800}
+.stale-strip button{background:#f59e0b;color:#fff;border:0;border-radius:5px;
+  padding:5px 10px;font-size:10px;font-weight:800;letter-spacing:.04em;cursor:pointer;margin-left:auto}
+
+/* derived fields: visibly not editable. A field that accepts your typing and
+   silently discards it is the interface lying to you. */
+.dollar-field.derived-field{background:#f1f5f9;border-style:dashed;}
+.dollar-field.derived-field .dollar-sign{color:var(--text3)}
+.pos-grid input.derived{background:transparent;color:var(--text3);cursor:not-allowed;font-weight:700}
+.pos-grid .dollar-field{margin-top:2px}
+.pos-grid>div{min-width:0;}
+.pos-grid .dollar-field{min-width:0;overflow:hidden;}
+.pos-grid .dollar-field .dollar-sign{padding:2px 1px 2px 4px;font-size:12px;flex:none;}
+.pos-grid .dollar-field input{font-size:16px;text-align:right;padding:2px 4px 2px 0!important;letter-spacing:-0.3px;font-variant-numeric:tabular-nums;min-width:0;}
+
+/* 20-day range: where price sits between recent low and high */
+.rng20{margin-top:5px}
+.rng-bar{position:relative;height:5px;border-radius:3px;background:#e2e8f0;overflow:hidden}
+.rng-fill{height:100%;border-radius:3px;background:#94a3b8}
+.rng20.hot .rng-fill{background:#f59e0b}
+.rng20.cold .rng-fill{background:#38bdf8}
+.rng-mark{position:absolute;top:0;width:2px;height:100%;background:var(--text);
+  border-radius:1px;transform:translateX(-1px)}
+.rng-top{position:relative;height:14px;margin-bottom:2px}
+.rng-pct{position:absolute;top:0;font-size:9px;font-weight:600;color:var(--text3);
+  font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:.02em}
+.rng20.hot .rng-pct{color:#b45309}
+.rng20.cold .rng-pct{color:#0369a1}
+.rng-txt{display:flex;justify-content:space-between;
+  font-size:8.5px;color:var(--text3);margin-top:3px;font-variant-numeric:tabular-nums}
+
+/* incoherent levels — arithmetic error, not a judgement call */
+.incoh-strip{display:flex;align-items:center;gap:8px;
+  background:#fef2f2;border:1px solid #fecaca;border-left:3px solid #dc2626;
+  color:#991b1b;font-size:11px;line-height:1.4;padding:7px 10px;border-radius:6px;margin:8px 0}
+.incoh-strip b{font-weight:800}
+
+/* confirm modal — native confirm() is sandbox-blocked */
+.cfm-ovl{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.6);
+  display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}
+.cfm-ovl.on{display:flex}
+.cfm-box{background:#fff;border-radius:12px;padding:18px;max-width:400px;width:100%;
+  box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:80vh;overflow:auto}
+.cfm-box h3{margin:0 0 10px;font-size:15px;color:var(--text)}
+.cfm-box #cfmBody{font-size:12px;color:var(--text2);line-height:1.5}
+.cfm-box #cfmBody b{display:block;margin:10px 0 4px;color:var(--text);font-size:11px;
+  text-transform:uppercase;letter-spacing:.05em}
+.cfm-box #cfmBody ul{margin:0;padding-left:18px}
+.cfm-box #cfmBody li{margin-bottom:3px}
+.cfm-box #cfmBody i{display:block;margin-top:10px;color:#b91c1c;font-weight:700;font-style:normal;font-size:11px}
+.cfm-btns{display:flex;gap:8px;margin-top:16px}
+.cfm-btns button{flex:1;padding:11px;border-radius:8px;font-size:12px;font-weight:800;
+  letter-spacing:.04em;cursor:pointer;border:1px solid var(--border);background:#f8fafc;color:var(--text)}
+.cfm-btns button.danger{background:#f59e0b;color:#fff;border-color:#f59e0b}
+
+.norm-row{margin:14px 0 4px;}
+.norm-row .cash-card.norm{max-width:340px;}
+/* --- export panel --- */
+.exp-panel{background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:14px;margin-top:16px}
+.exp-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.exp-title{font-size:13px;font-weight:800;color:var(--text);letter-spacing:.02em}
+.exp-sub{font-size:11px;color:var(--text3);line-height:1.45;margin-top:3px;max-width:440px}
+.exp-go{background:var(--text);color:#fff;border:0;border-radius:8px;padding:10px 16px;
+  font-size:11px;font-weight:800;letter-spacing:.05em;cursor:pointer;flex:none}
+.exp-copy{width:100%;background:#2563eb;color:#fff;border:0;border-radius:8px;padding:12px;
+  font-size:12px;font-weight:800;letter-spacing:.04em;cursor:pointer;margin-top:12px}
+.exp-note{font-size:11px;margin-top:8px;color:var(--text3);line-height:1.4}
+#expText{width:100%;height:220px;margin-top:8px;border:1px solid var(--border);border-radius:8px;
+  padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.4;
+  color:var(--text2);background:#f8fafc;white-space:pre;overflow:auto}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-top-row">
+    <div>
+      <div class="hdr-eyebrow">PORTFOLIO INTELLIGENCE TRACKER</div>
+      <div class="hdr-main">Rebalance &amp; <b>Buy Scenarios</b></div>
+    </div>
+    <div class="hdr-right">
+      <span class="ver-badge" id="verBadge">v1.0.0</span>
+      <div class="view-toggle" id="viewToggle">
+        <button type="button" data-view="scenario" class="active">Scenario</button>
+        <button type="button" data-view="summary">Portfolio Summary</button>
+      </div>
+      <div class="st-badge" id="storageBadge"><span class="st-label">Storage</span><span class="st-val">checking…</span></div>
+      <div class="hdr-sub"><span class="hs-label">Prices as of:</span><span class="hs-val" id="priceAsOf"></span></div>
+    </div>
+  </div>
+</div>
+<div class="wrap">
+
+  <div class="accounts" id="accounts"></div>
+  <div class="portfolio-summary" id="portfolioSummary" style="display:none;"></div>
+
+  <div class="norm-row">
+    <div class="cash-card norm" data-card-id="norm-shares">
+      <label>Normalized Share Count</label>
+      <input type="number" id="normShares" step="1000000">
+      <div class="hint">Re-prices every ticker to this count so market caps compare cleanly</div>
+    </div>
+  </div>
+
+  <div class="exp-panel">
+    <div class="exp-head">
+      <div>
+        <div class="exp-title">Export state</div>
+        <div class="exp-sub">Everything you've typed, ready to paste into chat. Claude bakes it into the next build so it survives forever &mdash; on every device.</div>
+      </div>
+      <button id="expBtn" class="exp-go">GENERATE</button>
+    </div>
+    <div id="expOut" style="display:none">
+      <button id="expCopy" class="exp-copy">&#9106; COPY &mdash; then paste into chat</button>
+      <div class="exp-note" id="expNote"></div>
+      <textarea id="expText" spellcheck="false"></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// SEED DATA — pulled directly from JK Portfolio Buy and Position
+// Tool.xlsx. Overridden by window.storage on every load after
+// the first edit. BIG and OGW are not in the source workbook at
+// all (no cost basis tracked there yet) so they're not seeded —
+// add them manually if you want to model a first buy.
+// ─────────────────────────────────────────────────────────────
+// v2.21.1 — BUGFIX: 20-day range bar (the Low/High slider under Entry) was baked into
+// the card HTML at build time from the initial price and never touched again by the
+// live keystroke-recalc path (updatePosCardNumbers) — it only ever caught up when an
+// unrelated event (e.g. toggling Confirm Sell) triggered a full render(). Now updates
+// live on every price keystroke, same as R:R/Risk/Reward, without a full rebuild.
+// v2.22.0 — NEW: Portfolio Summary view (toggle in header, next to version badge).
+// Pure read-only report — solves "which tickers exist in both accounts" by
+// consolidating each ticker's RRSP + TFSA lots into one picture: per-lot rows
+// (their own real avg cost/shares/value) plus a bold ALL LOTS row per ticker with
+// a true weighted-average cost and combined P&L. Deliberately does NOT blend
+// stop/entry/target across lots — those stay in Scenario view since they're
+// genuinely per-lot Chandelier risk parameters (different entry dates → different
+// high-water marks), not portfolio totals. No load-time cost: all data was already
+// in memory (positions array), this just re-aggregates it — zero network calls,
+// same as the rest of the tool. Same pattern the old PIT Position Intelligence
+// table used before it was removed. Persisted via IndexedDB like everything else.
+// v2.22.1 — DATA REFRESH from Historic_Volume_and_Price_Jul_17_26_YTD.xlsx (PRICE_AS_OF
+// Wed Jul 15 → Fri Jul 17). PRICES, RANGE20, ATR, VOLUME, REL_STRENGTH, BENCH_20D and
+// BENCHMARKS all updated from the workbook's own Wilder-14 ATR and OHLCV columns (read
+// directly, not recomputed). GCU's ATR/vol/RS gap — flagged "pending next workbook" —
+// is now filled in (ATR 0.0217, RANGE20 0.34-0.45, VOLUME FADING, RS -6.2). FEO still
+// has NO usable price series in this workbook (its column block has no Date/OHLCV at
+// all, only 4 stray ATR-family columns) — left untouched. HIGH_WATER marks recomputed
+// against each position's existing anchor date; all 8 came back UNCHANGED — no new highs
+// were made in the 2 extra trading days, consistent with broadly negative RS this pull.
+// v2.22.2 — FEO's data gap closed. Root cause (per user): the master workbook uses a
+// live GOOGLEFINANCE formula that hadn't resolved for FEO at export time, so its block
+// came through genuinely blank — not a parsing error on this end. First replacement
+// attempt was mislabeled (verified byte-for-byte identical to GCU's already-loaded
+// data — same Jul 17 close $0.35, same ATR 0.021673 — wrong tab got copied). Second
+// attempt confirmed as real, distinct FEO data (Jan-Jul range $0.61-$1.04, matching the
+// known thesis: new 1-yr-low territory, below the $0.75 Feb-2026 raise price). PRICES,
+// RANGE20, ATR, VOLUME, REL_STRENGTH all updated. HIGH_WATER cross-checked and
+// unchanged (0.66 both before and after — same anchor date, same answer, good sanity
+// check on the new data's integrity).
+const VERSION = 'v2.22.2';
+// RRSP cash includes $5,400 proceeds from CRCL sale, 14 Jul 2026 (36,000 @ $0.150)
+
+// Basic issued & outstanding shares (most recent filing, ~Mar 31 2026). Used for
+// the normalized-share comparison: every ticker re-priced to NORM_SHARES so market
+// caps rank cleanly. Update on a financing. FEO/RDU confirmed against filings.
+const SHARES = {
+  GCU:  422803601,
+  RDU:  115704251,
+  ANDC: 273360655,
+  RAK:  166449947,
+  CRCL:  59291798,
+  NLR:   67988704,
+  KFR:  133732098,
+  CGNT: 207664198,
+  CANX: 208627862,
+  OGW:   32977755,
+  BIG:  342898421,
+  FEO:  260625423,
+};
+const DEFAULT_NORM_SHARES = 271547000;   // your baseline; editable in the header
+let normShares = DEFAULT_NORM_SHARES;
+
+// Cash on hand (most recent filing). RDU/CRCL/NLR/CANX/OGW ~Q-end; FEO exact from
+// Mar-31 FS. EV = market cap - cash — the cash-adjusted size, sharper for developers.
+const CASH = {
+  GCU:  14400000,  // US$10.5M x ~1.37 FX. USD-reporting co on TSX — converted to CAD for EV math.
+  RDU:  1397740,  ANDC: 27962073, RAK:  9683401,  CRCL:  968071,  NLR:   352455,
+  KFR:  30496924, CGNT: 21171424, CANX: 2004367,  OGW:  3614482,  BIG:  8092724,
+  FEO:  50577726,
+};
+
+// Monthly cash burn (before financing) = operating + exploration/dev outflow,
+// EXCLUDING one-time investing inflows (option payments, disposals). From the
+// most recent filing's cash-flow statement, annualized to monthly. Runway =
+// cash / burn -> forecasts the next-raise window. Refresh on the filings diff.
+// est:true = OCR of the filing didn't parse cleanly; VERIFY these two.
+const BURN = {
+  GCU:  {mo:1500000, asOf:'2026-03-31', est:true},  // EST corporate burn ex-Nuton pass-through; ~CAD. Mgmt states 12mo funded.
+  RDU:  {mo:105000,  asOf:'2025-12-31', est:false},
+  ANDC: {mo:1954000, asOf:'2026-03-31', est:false},
+  RAK:  {mo:200000,  asOf:'2025-12-31', est:true},
+  CRCL: {mo:400000,  asOf:'2026-03-31', est:false},
+  NLR:  {mo:46000,   asOf:'2026-01-31', est:false},
+  KFR:  {mo:210000,  asOf:'2026-03-31', est:false},
+  CGNT: {mo:1500000, asOf:'2026-03-31', est:true},
+  CANX: {mo:193000,  asOf:'2026-03-31', est:false},
+  OGW:  {mo:570000,  asOf:'2026-03-31', est:false},
+  BIG:  {mo:810000,  asOf:'2026-03-31', est:false},
+  FEO:  {mo:162000,  asOf:'2026-03-31', est:false},
+};
+function runwayInfo(ticker){
+  const b=BURN[ticker], cash=CASH[ticker];
+  if(!b || !b.mo || cash==null) return null;
+  const months = cash/b.mo;
+  const out = new Date(b.asOf); out.setMonth(out.getMonth()+Math.round(months));
+  return {burn:b.mo, months, out, est:b.est};
+}
+
+function normMetrics(ticker, price){
+  const sh = SHARES[ticker];
+  if(!sh || !normShares) return null;
+  const mktCap = price*sh;
+  const cash = CASH[ticker]||0;
+  const ev = mktCap - cash;
+  return { shares:sh, normPrice: price*sh/normShares, ratio: sh/normShares, N: normShares,
+           mktCap, cash, ev, evNormPrice: ev/normShares };
+}
+const fmtM = n => (n>=1e9? (n/1e9).toFixed(2)+'B' : (n/1e6).toFixed(1)+'M');
+
+const SEED_CASH = { RRSP: 5470, TFSA: 0 };
+
+// ─────────────────────────────────────────────────────────────
+// BEGIN_PRICE_DATA — single source of truth for current prices.
+// One entry per ticker (prices are not account-specific). Update
+// this block only; every position picks its price up from here.
+// ─────────────────────────────────────────────────────────────
+const PRICE_AS_OF = 'Fri Jul 17, 2026';
+const PRICES = {
+  GCU:  0.35,   // CAD (TSX). ATR/vol/RS now filled in — was pending, resolved by the Jul 17 workbook.
+  RDU:  0.15,
+  ANDC: 1.11,
+  RAK:  0.13,
+  CRCL: 0.14,
+  NLR:  0.12,
+  KFR:  1.02,
+  CGNT: 0.8,
+  CANX: 0.24,
+  OGW:  1.34,
+  BIG:  0.56,
+  FEO:  0.61,   // Real GOOGLEFINANCE-sourced OHLCV now confirmed (was blank in the master workbook — resolved via a separate values-only export).
+};
+
+// ─────────────────────────────────────────────────────────────
+// BEGIN_ATR_DATA — Wilder 14-period ATR, as of PRICE_AS_OF.
+// Sourced from the Historic Volume & Price workbook, same
+// formula already in use there: ATR = (prevATR*13 + TR) / 14
+// ─────────────────────────────────────────────────────────────
+// Baked from J's export, 14 Jul 2026 07:09. Core locks and staged sells.
+// These are STARTING values — IndexedDB overrides them once you edit.
+const SEED_STAGING = {
+  // Baked from J's export, 15 Jul 2026 12:19 AM. Core locks, staged sells, add scenarios.
+  'RRSP-RDU':  {addAmt:7990, coreShares:50000, isCore:true, sellQty:0},
+  'TFSA-RDU':  {sellChecked:true},                 // SELL staged: full 60,750 @ $0.180 (NOT executed)
+  'RRSP-ANDC': {coreShares:15000, isCore:true, sellQty:0},
+  'TFSA-ANDC': {sellQty:0},
+  'RRSP-RAK':  {coreShares:1680, isCore:true, sellQty:0},
+  'TFSA-RAK':  {sellQty:0},
+  'RRSP-CRCL': {coreShares:11000, isCore:true, sellQty:0},
+  'RRSP-NLR':  {sellChecked:true, moveToTop:true}, // SELL staged: full 21,000 @ $0.120 (NOT executed)
+  'RRSP-KFR':  {addAmt:7990},
+  'TFSA-KFR':  {addAmt:10935},
+  'RRSP-BIG':  {addAmt:7990},
+  'TFSA-BIG':  {addAmt:10935},
+};
+
+const RANGE20 = {  // 20-session high/low from the weekly workbook (to Fri Jul 17, 2026)
+  RDU:   {lo:0.12, hi:0.16},
+  ANDC:  {lo:1.01, hi:1.36},
+  RAK:   {lo:0.12, hi:0.17},
+  CRCL:  {lo:0.12, hi:0.15},
+  NLR:   {lo:0.1, hi:0.14},
+  KFR:   {lo:0.99, hi:1.38},
+  CGNT:  {lo:0.67, hi:0.9},
+  CANX:  {lo:0.22, hi:0.28},
+  OGW:   {lo:1.28, hi:1.6},
+  BIG:   {lo:0.55, hi:0.64},
+  GCU:   {lo:0.34, hi:0.45},
+  FEO:   {lo:0.61, hi:0.88},
+};
+
+const ATR = {
+  RDU:  0.0061,  // 4.1% of price
+  ANDC: 0.0863,  // 7.8% of price
+  RAK:  0.0081,  // 6.2% of price
+  CRCL: 0.01,  // 7.1% of price
+  NLR:  0.0094,  // 7.8% of price
+  KFR:  0.1053,  // 10.3% of price
+  CGNT: 0.0577,  // 7.2% of price
+  CANX: 0.0142,  // 5.9% of price
+  OGW:  0.0799,  // 6.0% of price
+  BIG:  0.0329,  // 5.9% of price
+  GCU:  0.0217,  // 6.2% of price
+  FEO:  0.0404,  // 6.6% of price
+};
+const ATR_MULTIPLIER = 3;  // Chandelier multiplier. 3x matches the xlsx.
+
+// VOLUME — two separate measurements, because they answer different questions:
+//   level = today's volume / 20-day average  → "is today unusual?"
+//   trend = last 3d average / prior 10d average → "is participation building?"
+// A stock can sit at 0.11x level (quiet day) while trend is 1.9x (volume has
+// been building all week) — that combination is often the tell BEFORE a move,
+// and a level-only badge would have shown it as "dormant" and hidden it.
+const VOLUME = {
+  RDU:  {last:66000, avg20:85494, level:0.77, trend:1.0, state:'NORMAL'},
+  ANDC: {last:555143, avg20:690027, level:0.8, trend:0.75, state:'NORMAL'},
+  RAK:  {last:132500, avg20:196160, level:0.68, trend:0.92, state:'NORMAL'},
+  CRCL: {last:6000, avg20:90021, level:0.07, trend:0.26, state:'FADING'},
+  NLR:  {last:5000, avg20:108088, level:0.05, trend:0.23, state:'FADING'},
+  KFR:  {last:194897, avg20:339591, level:0.57, trend:1.11, state:'NORMAL'},
+  CGNT: {last:2035196, avg20:757338, level:2.69, trend:2.12, state:'SURGE'},
+  CANX: {last:7600, avg20:67351, level:0.11, trend:1.52, state:'BUILDING'},
+  OGW:  {last:170650, avg20:75088, level:2.27, trend:2.09, state:'SURGE'},
+  BIG:  {last:142257, avg20:172603, level:0.82, trend:0.47, state:'FADING'},
+  GCU:  {last:217515, avg20:533290, level:0.41, trend:0.69, state:'FADING'},
+  FEO:  {last:66250, avg20:90886, level:0.73, trend:0.98, state:'NORMAL'},
+};
+// 5 states, in priority order:
+//   SURGE    — level >= 1.5x   (today is genuinely heavy)
+//   BUILDING — trend >= 1.3x   (participation rising, even if today is light)
+//   FADING   — trend <= 0.7x   (interest draining away)
+//   DORMANT  — level <= 0.25x  (nobody home)
+//   NORMAL   — none of the above
+const VOL_STATE_META = {
+  SURGE:    {cls:'hot',      label:'SURGE'},
+  BUILDING: {cls:'building', label:'BUILDING'},
+  FADING:   {cls:'fading',   label:'FADING'},
+  DORMANT:  {cls:'cold',     label:'DORMANT'},
+  NORMAL:   {cls:'',         label:'NORMAL'},
+};
+
+// RELATIVE STRENGTH — the ticker's 20-day % move MINUS the sector benchmark's
+// 20-day % move (GDXJ, VanEck Junior Gold Miners).
+//   Positive = beating the sector. Negative = lagging it.
+// This is what separates "this company is broken" from "the whole complex is
+// down". A -3% move when the sector is +5% is a very different fact from a
+// -3% move when the sector is -8%.
+const BENCH_TICKER = 'GDXJ';
+const BENCH_20D = -16.0;   // GDXJ 20-day change, %
+const REL_STRENGTH = {
+  RDU:  {chg20:7.1, rs:+23.1},
+  ANDC: {chg20:-16.5, rs:-0.5},
+  RAK:  {chg20:-13.3, rs:+2.7},
+  CRCL: {chg20:0.0, rs:+16.0},
+  NLR:  {chg20:0.0, rs:+16.0},
+  KFR:  {chg20:-26.6, rs:-10.6},
+  CGNT: {chg20:-5.9, rs:+10.1},
+  CANX: {chg20:-7.7, rs:+8.3},
+  OGW:  {chg20:-3.6, rs:+12.4},
+  BIG:  {chg20:-5.1, rs:+10.9},
+  GCU:  {chg20:-22.2, rs:-6.2},
+  FEO:  {chg20:-19.7, rs:-3.7},
+};
+function volState(ticker){
+  const v = VOLUME[ticker];
+  return v ? VOL_STATE_META[v.state] : null;
+}
+function relStrength(ticker){ return REL_STRENGTH[ticker] || null; }
+
+// Junior mining benchmarks (workbook v2). Not wired into the cards yet —
+// parked here for the PIT merge, where relative strength vs. the sector
+// tells you whether a drawdown is company-specific or just the tide going
+// out. NOTE: JUNR was in the v2 workbook but pulled through EMPTY (no rows).
+const BENCHMARKS = {
+  GDXJ: {name:'VanEck Junior Gold Miners',   close:92.2, ytd:-18.6},
+  SILJ: {name:'Amplify Junior Silver Miners', close:23.79, ytd:-13.3},
+  SGDJ: {name:'Sprott Junior Gold Miners',    close:71.74, ytd:-14.3},
+};
+
+// HIGH-WATER MARK per position — the highest HIGH since the anchor date.
+// The anchor is when the position was last established (i.e. since the
+// account was last FLAT in that name, not the first-ever buy). A trailing
+// stop's job is protecting the gain earned on THIS position; measuring
+// from a peak you already banked and exited would be measuring against a
+// gain you don't hold.
+//   TFSA-ANDC is the clearest case: the position went to ZERO on Mar 16,
+//   2026 and was re-entered Apr 16 — so its clock resets to April, while
+//   RRSP-ANDC (never fully exited) trails all the way from Oct 2025.
+// Reconciled against broker transaction history; ANDC matched to the
+// share and to within $0.002 of avg cost in both accounts.
+const HIGH_WATER = {
+  'RRSP-RDU':   {high:0.16, anchor:'2026-05-21', note:'shared anchor w/ TFSA; lots close ($0.1398 vs $0.1492)'},
+  'TFSA-RDU':   {high:0.16, anchor:'2026-05-21', note:'last buy 3,150 @ $0.145'},
+  'RRSP-RAK':   {high:0.19, anchor:'2026-03-12', note:'last buy 880 @ $0.135'},
+  'TFSA-RAK':   {high:0.19, anchor:'2026-03-06', note:'last buy 1,700 @ $0.135'},
+  'RRSP-ANDC':  {high:1.49, anchor:'2025-10-10', note:'held continuously since first buy @ $0.46'},
+  'TFSA-ANDC':  {high:1.49, anchor:'2026-04-16', note:'position went FLAT Mar 16 — clock reset on re-entry'},
+  'RRSP-NLR':   {high:0.14, anchor:'2026-06-15', note:'single buy @ $0.12'},
+  'RRSP-CRCL':  {high:0.15, anchor:'2026-06-15', note:'single buy @ $0.14'},
+  'RRSP-FEO':  {high:0.66, anchor:'2026-07-15', note:'single buy 8,000 @ $0.65 — bought at the 20-day low; high-water = entry-day high'},
+};
+// END_ATR_DATA
+
+// Chandelier stop = high-water mark − (multiplier × ATR).
+// Trails UP only: it can never move down, because HIGH_WATER only ever
+// ratchets up. Volatility-scaled, so NLR/KFR (10% ATR) get a wide leash
+// while RDU (3.6%) gets a tight one — a single flat % cannot do both.
+// This is a REVIEW TRIGGER, not a sell signal: a breach means "go look at
+// catalysts, filings, and macro", not "sell".
+function chandelierStop(p){
+  const hw = HIGH_WATER[p.id];
+  const atr = ATR[p.ticker];
+  if(!hw || !atr || p.shares<=0) return null;
+  return hw.high - (ATR_MULTIPLIER * atr);
+}
+function isBreached(p){
+  const stop = chandelierStop(p);
+  return stop !== null && p.price < stop;
+}
+// END_PRICE_DATA
+
+const SEED_POSITIONS = [
+  {id:'RRSP-RDU',  ticker:'RDU',  account:'RRSP', name:'Radius Gold',              exch:'TSXV',  avgCost:0.1398, shares:50000, stop:0.138493, entry:0.16, target:1.6},
+  {id:'TFSA-RDU',  ticker:'RDU',  account:'TFSA', name:'Radius Gold',              exch:'TSXV',  avgCost:0.1492, shares:60750, stop:0.14547,  entry:0.145,   target:0.45},
+  {id:'RRSP-ANDC', ticker:'ANDC', account:'RRSP', name:'Andina Copper',            exch:'TSXV',  avgCost:0.6491, shares:15000, stop:0.660251, entry:1.05, target:3.48},
+  {id:'TFSA-ANDC', ticker:'ANDC', account:'TFSA', name:'Andina Copper',            exch:'TSXV',  avgCost:0.99,   shares:18200, stop:0.96525,  entry:1.05,     target:3.48},
+  {id:'RRSP-RAK',  ticker:'RAK',  account:'RRSP', name:'Rackla Metals',            exch:'TSXV',  avgCost:0.201,  shares:1680, stop:0.147825, entry:0.14, target:1},
+  {id:'TFSA-RAK',  ticker:'RAK',  account:'TFSA', name:'Rackla Metals',            exch:'TSXV',  avgCost:0.2124, shares:2200, stop:0.20709,  entry:0.2124,   target:1},
+  {id:'RRSP-CRCL', ticker:'CRCL', account:'RRSP', name:'Corcel Exploration',       exch:'CSE', avgCost:0.14,   shares:25000, stop:0.1365,   entry:0.13,  target:0.29},
+  {id:'TFSA-CRCL', ticker:'CRCL', account:'TFSA', name:'Corcel Exploration',       exch:'CSE', avgCost:0,      shares:0, stop:0.1365,   entry:0,  target:0},
+  {id:'RRSP-NLR',  ticker:'NLR',  account:'RRSP', name:'Northern Lights Resources',exch:'CSE', avgCost:0.12,   shares:21000, stop:0.117,    entry:0.11, target:0.14},
+  {id:'TFSA-NLR',  ticker:'NLR',  account:'TFSA', name:'Northern Lights Resources',exch:'CSE', avgCost:0,      shares:0, stop:0.117,    entry:0, target:0},
+  {id:'RRSP-KFR',  ticker:'KFR',  account:'RRSP', name:'Kingfisher Metals',        exch:'TSXV',  avgCost:0,      shares:0, stop:1.02375,  entry:1.05,     target:3.5},
+  {id:'TFSA-KFR',  ticker:'KFR',  account:'TFSA', name:'Kingfisher Metals',        exch:'TSXV',  avgCost:0,      shares:0, stop:1.02375,  entry:0,     target:0},
+  {id:'RRSP-CGNT', ticker:'CGNT', account:'RRSP', name:'Copper Giant Resources',   exch:'TSXV',  avgCost:0,      shares:0, stop:0.765375, entry:0,    target:0},
+  {id:'TFSA-CGNT', ticker:'CGNT', account:'TFSA', name:'Copper Giant Resources',   exch:'TSXV',  avgCost:0,      shares:0, stop:0.765375, entry:0,    target:0},
+  {id:'RRSP-CANX', ticker:'CANX', account:'RRSP', name:'Canex Metals',             exch:'TSXV',  avgCost:0,      shares:0, stop:0.273,    entry:0,     target:0},
+  {id:'TFSA-CANX', ticker:'CANX', account:'TFSA', name:'Canex Metals',             exch:'TSXV',  avgCost:0,      shares:0, stop:0.273,    entry:0,     target:0},
+  {id:'RRSP-BIG',  ticker:'BIG',  account:'RRSP', name:'Hercules Metals',          exch:'TSXV',    avgCost:0,      shares:0, stop:0,        entry:0,        target:0},
+  {id:'TFSA-BIG',  ticker:'BIG',  account:'TFSA', name:'Hercules Metals',          exch:'TSXV',    avgCost:0,      shares:0, stop:0,        entry:0,        target:0},
+  {id:'RRSP-FEO', ticker:'FEO', account:'RRSP', name:'Oceanic Iron Ore',          exch:'TSXV',  avgCost:0.65,   shares:8000, stop:0.534,    entry:0,        target:0},
+  {id:'TFSA-FEO', ticker:'FEO', account:'TFSA', name:'Oceanic Iron Ore',          exch:'TSXV',  avgCost:0,      shares:0,    stop:0,        entry:0,        target:0},
+  {id:'RRSP-GCU',  ticker:'GCU',  account:'RRSP', name:'Gunnison Copper',          exch:'TSX',   avgCost:0,      shares:0, stop:0,        entry:0,        target:0},
+  {id:'TFSA-GCU',  ticker:'GCU',  account:'TFSA', name:'Gunnison Copper',          exch:'TSX',   avgCost:0,      shares:0, stop:0,        entry:0,        target:0},
+  {id:'RRSP-OGW',  ticker:'OGW',  account:'RRSP', name:'Ongwe Minerals',           exch:'TSXV',    avgCost:0,      shares:0, stop:0,        entry:0,        target:0},
+  {id:'TFSA-OGW',  ticker:'OGW',  account:'TFSA', name:'Ongwe Minerals',           exch:'TSXV',    avgCost:0,      shares:0, stop:0,        entry:0,        target:0},
+];
+
+const BADGE_COLORS = {GCU:'#c2410c',RDU:'#0d9488',CRCL:'#7c3aed',NLR:'#0369a1',RAK:'#b91c1c',ANDC:'#b45309',CGNT:'#065f46',KFR:'#1e40af',CANX:'#9f1239',BIG:'#a16207',OGW:'#4338ca'};
+// Light tint of each ticker's colour, used as the card header background.
+// Derived from BADGE_COLORS at ~8% opacity over white so the two can never
+// drift apart if a ticker colour is ever changed.
+function tickerTint(ticker){
+  const hex = BADGE_COLORS[ticker];
+  if(!hex) return '#f1f5f9';
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const mix = (c)=>Math.round(c + (255-c)*0.92); // 8% colour, 92% white
+  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+}
+
+let acctCollapsed = { RRSP:false, TFSA:false };
+let cardCollapsed = {};   // per-position-card e/c overrides (id → bool). Persisted in IndexedDB. No entry = default (WATCHING cards collapse, held cards open).
+let cash = {...SEED_CASH};
+let viewMode = 'scenario';   // 'scenario' | 'summary' — toggle between per-position entry/stop/target
+                              // editing and a read-only cross-account book-value report (consolidated
+                              // per ticker, like the old PIT Position Intelligence table). Persisted.
+let positions = SEED_POSITIONS.map(p=>{
+  const px = PRICES[p.ticker] ?? 0;
+  const base = {...p, price:px};
+  // Stop is DERIVED from the Chandelier calc, not stored — same principle as
+  // cash. The old xlsx stops were set months ago against prices that have
+  // since moved through them (RAK/CRCL/NLR were all trading below their own
+  // stops), so carrying them forward would have been carrying stale state.
+  const cs = chandelierStop(base);
+  return {...base, stop: cs !== null ? cs : (p.stop ?? 0),
+          isCore:false, coreShares:0, sellQty:p.shares, sellPrice:px,
+          sellChecked:false, mode:'book', addAmt:0, moveToTop:false,
+          ...(SEED_STAGING[p.id] || {})};   // core locks + staged sells, baked from export
+});
+
+function fmt(n,d=2){ if(n===null||n===undefined||isNaN(n))return '—'; return Number(n).toLocaleString('en-CA',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmt0(n){ return fmt(n,0); }
+function fmtPx(n){ return fmt(n,3); } // all per-share prices: 3 decimal places, always
+
+function bookValue(p){ return p.avgCost*p.shares; }
+function actualValue(p){ return p.price*p.shares; }
+function pl(p){ return actualValue(p)-bookValue(p); }
+function plPct(p){ const bv=bookValue(p); return bv?pl(p)/bv:0; }
+function riskReward(entry,stop,target){
+  const risk = entry-stop, reward = target-entry;
+  if(risk<=0) return null;
+  return reward/risk;
+}
+// `cash.RRSP` / `cash.TFSA` hold your BASE cash — what you'd type in fresh.
+// The displayed total is computed from that base plus whatever's currently
+// confirmed (Confirm Sell / Confirm Buy), read straight from `positions`
+// every time. Nothing here is a separately-mutated running ledger, so the
+// displayed number can never drift out of sync with the checkboxes that
+// drive it — there's only one source of truth per position (isConfirmed
+// flags, saved the same reliable way as isCore) instead of two things
+// (a flag + a separate cash write) that could fall out of step.
+function accountCashTotal(acct){
+  const base = acct==='RRSP' ? cash.RRSP : cash.TFSA;
+  const sellProceeds = positions.filter(p=>p.account===acct && p.sellChecked)
+    .reduce((s,p)=>s+(p.sellQty*p.sellPrice),0);
+  const buySpent = positions.filter(p=>p.account===acct)
+    .reduce((s,p)=>s+(p.addAmt||0),0);
+  const newBuySpent = (newBuyState[acct] && newBuyState[acct].amt) || 0;
+  return base + sellProceeds - buySpent - newBuySpent;
+}
+function renderCashBreakdown(acct){
+  const el = document.getElementById('cash'+acct+'-breakdown');
+  if(!el) return;
+  const base = acct==='RRSP' ? cash.RRSP : cash.TFSA;
+  const sells = positions.filter(p=>p.account===acct && p.sellChecked);
+  const buys = positions.filter(p=>p.account===acct && (p.addAmt||0)>0);
+  const sellTotal = sells.reduce((s,p)=>s+(p.sellQty*p.sellPrice),0);
+  const buyTotal = buys.reduce((s,p)=>s+(p.addAmt||0),0);
+  const newBuyAmt = (newBuyState[acct] && newBuyState[acct].amt) || 0;
+  const total = base + sellTotal - buyTotal - newBuyAmt;
+  el.innerHTML = `
+    <div class="cb-row"><span>Base</span><span>$${fmt(base,2)}</span></div>
+    <div class="cb-row"><span>+ Confirmed sells (${sells.length})</span><span>$${fmt(sellTotal,2)}</span></div>
+    <div class="cb-row"><span>&minus; New Book amounts (${buys.length})</span><span>$${fmt(buyTotal,2)}</span></div>
+    <div class="cb-row"><span>&minus; New Buy amount</span><span>$${fmt(newBuyAmt,2)}</span></div>
+    <div class="cb-row cb-total" style="${total<0?'color:var(--rose-text)':''}"><span>Total available${total<0?' &mdash; over-committed':''}</span><span>$${fmt(total,2)}</span></div>
+  `;
+}
+function refreshEntryTotals(){
+  document.querySelectorAll('.pos-card').forEach(card=>{
+    const acct = card.dataset.account;
+    if(!acct) return;
+    const valEl = card.querySelector('[data-entry-total] .et-value');
+    if(valEl){ const _v=accountCashTotal(acct); valEl.textContent = '$'+fmt0(_v); valEl.style.color = _v<0 ? 'var(--rose-text)' : ''; }
+  });
+}
+// Called whenever a New Book amount changes. Amounts are pooled live across
+// every ticker in the account (no per-ticker confirm step), so one keystroke
+// on RDU's amount has to ripple to: the top cash bar breakdown, the "cash"
+// caption under Entry on every card, and the "remaining" line on any other
+// card that also happens to have its New Book tab open. excludeDiv is the
+// card currently being typed into — its own amount input is skipped so the
+// person's cursor never gets disturbed mid-keystroke.
+function refreshCashDependents(acct, excludeDiv){
+  renderCashBreakdown(acct);
+  refreshEntryTotals();
+  document.querySelectorAll('.pos-card').forEach(card=>{
+    if(card===excludeDiv) return;
+    if(card.dataset.account!==acct) return;
+    const remEl = card.querySelector('[data-nb-remaining]');
+    if(!remEl) return;
+    const rem = accountCashTotal(acct);
+    remEl.textContent = '$'+fmt(rem,2);
+    remEl.style.color = rem<0 ? 'var(--rose-text)' : '';
+  });
+}
+
+/* ============================================================================
+   STORAGE — IndexedDB.  v2.9.0
+   window.storage was PROVEN dead on iOS (all verbs return "Invalid response
+   format"; it only works on desktop). Since J trades from mobile, that made
+   the old transport a facade: it looked like it saved, and it never did.
+   IndexedDB was tested on iOS and survives session close, artifact reopen,
+   AND new artifact versions. So it is the transport now.
+   DB name + version are FROZEN. Schema changes go in the record, never in
+   the IndexedDB version — a hand-written migration is a way to destroy data.
+   Nothing here fails silently. Ever. That was the original bug.
+   ========================================================================== */
+const DB_NAME='jk_portfolio_v1', DB_VER=1, DB_STORE='kv';
+let STORAGE_OK=false, STORAGE_ERR='';
+
+const IDB=(()=>{
+  let dbp=null, liveDB=null;
+  function open(){
+    if(dbp) return dbp;
+    dbp=new Promise((res,rej)=>{
+      if(typeof indexedDB==='undefined'){ rej(new Error('IndexedDB unavailable')); return; }
+      let r; try{ r=indexedDB.open(DB_NAME,DB_VER); }catch(e){ rej(e); return; }
+      r.onupgradeneeded=ev=>{ const db=ev.target.result;
+        if(!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE); };
+      r.onsuccess=()=>{
+        liveDB=r.result;
+        // iOS drops connections on backgrounding / versionchange. When THIS
+        // connection closes, invalidate the cache so the next call reopens.
+        liveDB.onclose=()=>{ liveDB=null; dbp=null; };
+        liveDB.onversionchange=()=>{ try{liveDB.close();}catch(_){} liveDB=null; dbp=null; };
+        res(r.result);
+      };
+      r.onerror  =()=>{ dbp=null; rej(r.error||new Error('open failed')); };
+      r.onblocked=()=>{ dbp=null; rej(new Error('open blocked')); };
+      setTimeout(()=>{ if(!liveDB){ dbp=null; rej(new Error('open timed out')); } },6000);
+    });
+    return dbp;
+  }
+  // Reopen-on-failure wrapper. A cached handle can go stale ("connection is
+  // closing"); we drop it and retry once on a fresh open. This is THE fix for
+  // the InvalidStateError seen on iOS after the tab is backgrounded.
+  function run(mode, op){
+    const attempt = () => open().then(db=>new Promise((res,rej)=>{
+      let tx;
+      try{ tx = db.transaction(DB_STORE, mode); }
+      catch(e){ dbp=null; liveDB=null; rej(e); return; }   // sync InvalidStateError
+      const store = tx.objectStore(DB_STORE);
+      op(store, tx, res, rej);
+    }));
+    return attempt().catch(e=>{
+      if(e && (e.name==='InvalidStateError' || /clos(e|ing|ed)/i.test(e.message||''))){
+        dbp=null; liveDB=null;      // dead handle → one clean retry
+        return attempt();
+      }
+      throw e;
+    });
+  }
+  const get=k=>run('readonly',(store,tx,res,rej)=>{
+    const q=store.get(k); q.onsuccess=()=>res(q.result===undefined?null:q.result); q.onerror=()=>rej(q.error);
+  });
+  const set=(k,v)=>run('readwrite',(store,tx,res,rej)=>{
+    store.put(v,k); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error||new Error('aborted'));
+  });
+  const del=k=>run('readwrite',(store,tx,res,rej)=>{
+    store.delete(k); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error);
+  });
+  const keys=()=>run('readonly',(store,tx,res,rej)=>{
+    const q=store.getAllKeys(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>rej(q.error);
+  });
+  // Health is proven with keys(), NOT get(). A missing key and a broken
+  // storage layer must never be confusable — conflating them is what let
+  // months of failed writes look like "no data yet".
+  // Bulk read: every key+value in ONE transaction. Turns the ~29-read load
+  // into a single round-trip — the fix for the minute-plus load on iOS, where
+  // per-read transactions (× reconnects) serialized badly.
+  const getAll=()=>run('readonly',(store,tx,res,rej)=>{
+    const kq=store.getAllKeys(); const vq=store.getAll();
+    let kk=null, vv=null;
+    const done=()=>{ if(kk===null||vv===null) return; const o={}; for(let i=0;i<kk.length;i++) o[kk[i]]=vv[i]; res(o); };
+    kq.onsuccess=()=>{ kk=kq.result||[]; done(); };
+    vq.onsuccess=()=>{ vv=vq.result||[]; done(); };
+    kq.onerror=()=>rej(kq.error); vq.onerror=()=>rej(vq.error);
+  });
+  const health=()=>keys().then(k=>({ok:true,count:k.length}))
+                         .catch(e=>({ok:false,error:e.message||String(e)}));
+  return {get,set,del,keys,getAll,health};
+})();
+
+// The badge states a FACT, never an intention. "Saving" implies an action in
+// flight and tells you nothing you can rely on. "ALL CHANGES SAVED 12:04" is
+// a claim about the past — the only thing that's actually verifiable.
+function setStorageBadge(){
+  const el=document.getElementById('storageBadge');
+  if(!el) return;
+  let cls, val, title='';
+  if(!STORAGE_OK){ cls='bad'; val='Not saving'; title=(STORAGE_ERR||'storage unavailable')+' — edits will be lost when you close this.'; }
+  else if(lastSaveAt){ cls='ok'; val='Saved '+fmtClock(lastSaveAt); }
+  else { cls='ok'; val='No changes'; }
+  el.className='st-badge '+cls;
+  el.title=title;
+  el.innerHTML='<span class="st-label">Storage</span><span class="st-val">'+val+'</span>';
+}
+let lastSaveAt=null;
+function fmtClock(d){ return new Date(d).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'}); }
+
+let loadErrors=0;
+async function loadState(){
+  // ONE transaction reads the whole store. A successful bulk read also proves
+  // storage is healthy, so we don't need a separate health round-trip.
+  let store;
+  try{
+    store = await IDB.getAll();
+    STORAGE_OK = true;
+  }catch(e){
+    STORAGE_OK = false; STORAGE_ERR = e.message||String(e);
+    setStorageBadge();
+    return; // app still runs from seed; header now SAYS it isn't saving
+  }
+  setStorageBadge();
+  const R = {}; for(const k in store){ R[k] = {value: store[k]}; }
+
+  try{ if(R['rebal:cash']) cash = JSON.parse(R['rebal:cash'].value); }catch(e){ console.error("LOAD FAILED",e); loadErrors++; }
+  try{ if(R['rebal:normShares']) normShares = parseFloat(R['rebal:normShares'].value)||DEFAULT_NORM_SHARES; }catch(e){ loadErrors++; }
+  try{ if(R['rebal:collapsed']) acctCollapsed = {...acctCollapsed, ...JSON.parse(R['rebal:collapsed'].value)}; }catch(e){ loadErrors++; }
+  try{ if(R['rebal:cardCollapsed']) cardCollapsed = {...cardCollapsed, ...JSON.parse(R['rebal:cardCollapsed'].value)}; }catch(e){ loadErrors++; }
+  try{ if(R['rebal:viewMode'] && (R['rebal:viewMode'].value==='scenario'||R['rebal:viewMode'].value==='summary')) viewMode = R['rebal:viewMode'].value; }catch(e){ loadErrors++; }
+
+  for(const seed of SEED_POSITIONS){
+    const rec = R['rebal:pos:'+seed.id];
+    if(!rec) continue;
+    try{
+      const saved = JSON.parse(rec.value);
+      const idx = positions.findIndex(p=>p.id===seed.id);
+      // Storage holds SCENARIO state only — never override book facts or price.
+      delete saved.price; delete saved.shares; delete saved.avgCost; delete saved.stop;
+      const liveStamp = bookStamp(positions[idx]);
+      const wasStamp  = saved.bookStamp;
+      delete saved.bookStamp;
+      positions[idx] = {...positions[idx], ...saved};
+      positions[idx].staleVs = (wasStamp && wasStamp !== liveStamp) ? wasStamp : null;
+      if(saved.sellPrice === undefined) positions[idx].sellPrice = positions[idx].price;
+    }catch(e){ console.error("LOAD FAILED (corrupt record?)",e); loadErrors++; }
+  }
+  for(const acct of ['RRSP','TFSA']){
+    const rec = R['rebal:newbuy:'+acct];
+    if(!rec) continue;
+    try{ newBuyState[acct] = {...newBuyState[acct], ...JSON.parse(rec.value)}; }catch(e){ loadErrors++; }
+  }
+}
+
+async function saveCollapsed(){
+  await stSet('rebal:collapsed', JSON.stringify(acctCollapsed));
+}
+async function saveViewMode(){
+  await stSet('rebal:viewMode', viewMode);
+}
+// Transport is IndexedDB. Writes are debounced per key so typing stays snappy.
+// A failed write flips the header badge to red and says so out loud.
+const pending={}; const timers={};
+
+function stSetNow(key,value){
+  return IDB.set(key,value).then(()=>{
+    lastSaveAt=Date.now(); STORAGE_OK=true; setStorageBadge();
+  }).catch(e=>{
+    STORAGE_OK=false; STORAGE_ERR=e.message||String(e); setStorageBadge();
+    console.error('SAVE FAILED',key,e);
+  });
+}
+
+async function stSet(key,value){
+  pending[key]=value;
+  clearTimeout(timers[key]);
+  timers[key]=setTimeout(()=>{ stSetNow(key,pending[key]); },300);
+}
+
+// iOS suspends the tab on background BEFORE a 300ms debounce can fire, so the
+// last edit (amount to add, TOP toggle, anything typed just before switching
+// away) was being lost. Flush every pending write the instant the app is
+// hidden or closing. Fields that "survived" before only did so because they're
+// baked into the seed — actual edits were dropping.
+function flushPending(){
+  for(const key in pending){
+    clearTimeout(timers[key]);
+    const v=pending[key]; delete pending[key];
+    stSetNow(key,v);
+  }
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushPending(); });
+window.addEventListener('pagehide', flushPending);
+window.addEventListener('beforeunload', flushPending);
+
+async function stGet(key){
+  try{
+    const v=await IDB.get(key);
+    return (v===null||v===undefined)?null:{value:v};
+  }catch(e){ return null; }
+}
+
+async function saveCash(){
+  await stSet('rebal:cash', JSON.stringify(cash));
+}
+// The book fingerprint for a position: shares + avg cost. If either changes,
+// every scenario number typed against the old one is reasoning about a
+// position that no longer exists.
+function bookStamp(p){ return p.shares+'@'+p.avgCost; }
+
+async function savePos(p){
+  await stSet('rebal:pos:'+p.id, JSON.stringify({...p, bookStamp: bookStamp(p)}));
+}
+
+// RE-ANCHOR: reset only what the book change actually invalidated.
+//
+// QUANTITY-DERIVED fields (amount to add, sell qty, confirms) were sized
+// against a share count that no longer exists — they're now nonsense.
+//
+// But CORE SHARES is a DECISION ("this much I don't sell"), not a scenario
+// input. A trade filling doesn't un-make that decision. It survives — only
+// clamped if the new share count makes it impossible.
+//
+// And ENTRY / TARGET / STOP are PRICE LEVELS — thesis, not quantity. Buying
+// more shares doesn't invalidate a $1.60 target. They survive untouched.
+//
+// Destructive and irreversible, so it asks first and shows exactly what it
+// will change.
+function refreshCardFromBook(id){
+  const p = positions.find(x=>x.id===id);
+  if(!p) return;
+
+  const clamped = Math.min(p.coreShares||0, p.shares);
+  const coreClamped = clamped !== (p.coreShares||0);
+
+  const willClear = [];
+  if((p.addAmt||0) > 0)               willClear.push('Amount to add ($'+fmt0(p.addAmt)+' &rarr; $0)');
+  if(p.sellQty !== Math.max(0,p.shares-clamped)) willClear.push('Sell qty ('+fmt0(p.sellQty)+' &rarr; '+fmt0(Math.max(0,p.shares-clamped))+')');
+  if(p.sellChecked)                   willClear.push('Confirm Sell (unchecked)');
+  if(p.isCore)                        willClear.push('Core lock (unlocked)');
+  if(coreClamped)                     willClear.push('Core shares clamped ('+fmt0(p.coreShares)+' &rarr; '+fmt0(clamped)+' &mdash; you no longer hold enough)');
+
+  const keeps = ['Entry, Target and Stop &mdash; price levels, not quantities'];
+  if(!coreClamped && (p.coreShares||0) > 0) keeps.push('Core shares ('+fmt0(p.coreShares)+') &mdash; your decision, kept');
+  keeps.push('Your book (shares / avg cost) &mdash; never touched by this');
+
+  confirmModal(
+    'Re-anchor ' + p.id + '?',
+    (willClear.length
+       ? '<b>This will reset:</b><ul><li>' + willClear.join('</li><li>') + '</li></ul>'
+       : '<b>Nothing to reset</b> &mdash; your inputs already match the new book.') +
+    '<b>This will KEEP:</b><ul><li>' + keeps.join('</li><li>') + '</li></ul>' +
+    '<i>There is no undo.</i>',
+    'RE-ANCHOR',
+    ()=>{
+      p.addAmt = 0;
+      p.coreShares = clamped;          // KEPT (clamped only if impossible)
+      p.sellQty = Math.max(0, p.shares - clamped);
+      p.sellPrice = p.price;
+      p.sellChecked = false;
+      p.isCore = false;                // unlock the input, keep the number
+      p.staleVs = null;
+      // entry / target / stop deliberately untouched
+      savePos(p);
+      render();
+    });
+}
+
+// Native confirm() is BLOCKED in the artifact sandbox and fails silently.
+function confirmModal(title, bodyHtml, okLabel, onOk){
+  let ov = document.getElementById('cfmOverlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'cfmOverlay';
+    ov.className = 'cfm-ovl';
+    ov.innerHTML = '<div class="cfm-box"><h3 id="cfmTitle"></h3><div id="cfmBody"></div>' +
+      '<div class="cfm-btns"><button id="cfmCancel">Cancel</button>' +
+      '<button id="cfmOk" class="danger"></button></div></div>';
+    document.body.appendChild(ov);
+  }
+  document.getElementById('cfmTitle').textContent = title;
+  document.getElementById('cfmBody').innerHTML = bodyHtml;
+  const okBtn = document.getElementById('cfmOk');
+  okBtn.textContent = okLabel;
+  ov.classList.add('on');
+  const close = ()=>ov.classList.remove('on');
+  document.getElementById('cfmCancel').onclick = close;
+  okBtn.onclick = ()=>{ close(); onOk(); };
+}
+async function saveNewBuy(acct){
+  await stSet('rebal:newbuy:'+acct, JSON.stringify(newBuyState[acct]));
+}
+
+// Portfolio Summary — pure reporting view, no scenario editing. Consolidates each
+// ticker's RRSP + TFSA lots into one picture: per-lot rows (their own real entries)
+// plus a bold ALL LOTS row per ticker. Deliberately does NOT try to blend stop/entry/
+// target across lots — those are genuinely per-lot risk parameters (different entry
+// dates → different Chandelier high-water marks) and forcing them into one number
+// would show a price neither lot would actually execute at. Only $ figures that are
+// truly additive (shares, cost, value) get consolidated. Same pattern the old PIT
+// Position Intelligence table used before it was removed.
+function renderPortfolioSummary(container){
+  const held = positions.filter(p=>p.shares>0);
+  const totalBook = held.reduce((s,p)=>s+bookValue(p),0);
+  const totalActual = held.reduce((s,p)=>s+actualValue(p),0);
+  const totalPL = totalActual-totalBook;
+  const rrspHeld = held.filter(p=>p.account==='RRSP');
+  const tfsaHeld = held.filter(p=>p.account==='TFSA');
+  const rrspBook = rrspHeld.reduce((s,p)=>s+bookValue(p),0), rrspActual = rrspHeld.reduce((s,p)=>s+actualValue(p),0);
+  const tfsaBook = tfsaHeld.reduce((s,p)=>s+bookValue(p),0), tfsaActual = tfsaHeld.reduce((s,p)=>s+actualValue(p),0);
+
+  const byTicker = {};
+  held.forEach(p=>{
+    if(!byTicker[p.ticker]) byTicker[p.ticker] = {ticker:p.ticker, name:p.name, lots:[]};
+    byTicker[p.ticker].lots.push(p);
+  });
+  const order = Object.values(byTicker).map(t=>{
+    const shares = t.lots.reduce((s,p)=>s+p.shares,0);
+    const book = t.lots.reduce((s,p)=>s+bookValue(p),0);
+    const actual = t.lots.reduce((s,p)=>s+actualValue(p),0);
+    return {...t, shares, avgCost: shares>0?book/shares:0, book, actual, pct: totalBook>0?book/totalBook*100:0};
+  }).sort((a,b)=>b.book-a.book);
+
+  let h = `<div class="ps-hdr">
+    <div class="ps-stat"><span class="ps-label">Total Book</span><b>$${fmt0(totalBook)}</b></div>
+    <div class="ps-stat"><span class="ps-label">Total Actual</span><b>$${fmt0(totalActual)}</b></div>
+    <div class="ps-stat"><span class="ps-label">Total P&amp;L</span><b style="color:${totalPL>=0?'#16a34a':'#be123c'}">${totalPL>=0?'+':''}$${fmt0(totalPL)} (${totalBook?((totalPL/totalBook)*100).toFixed(1):'0.0'}%)</b></div>
+  </div>
+  <div class="ps-sub">RRSP: Book $${fmt0(rrspBook)} &middot; Actual $${fmt0(rrspActual)} &nbsp;|&nbsp; TFSA: Book $${fmt0(tfsaBook)} &middot; Actual $${fmt0(tfsaActual)}</div>`;
+
+  h += '<div class="alloc-bar" style="margin:12px 0;">';
+  order.forEach(t=>{
+    h += `<div class="alloc-seg" style="width:${t.pct}%;background:${tickerColor(t.ticker)};" title="${t.ticker} ${t.pct.toFixed(1)}%">${t.pct>7?t.ticker+' '+t.pct.toFixed(0)+'%':''}</div>`;
+  });
+  h += '</div>';
+
+  h += '<div style="overflow-x:auto;"><table class="ps-tbl"><thead><tr><th>Ticker</th><th>Acct</th><th>Shares</th><th>Avg Cost</th><th>Book Value</th><th>% Book</th><th>Current</th><th>Unrealized</th></tr></thead><tbody>';
+  order.forEach(t=>{
+    t.lots.forEach(p=>{
+      const pl = actualValue(p)-bookValue(p);
+      h += `<tr>
+        <td style="color:${tickerColor(t.ticker)};">${t.ticker}</td>
+        <td data-lbl="Acct">${p.account}</td>
+        <td data-lbl="Shares">${fmt0(p.shares)}</td>
+        <td data-lbl="Avg Cost">$${fmtPx(p.avgCost)}</td>
+        <td data-lbl="Book Value">$${fmt0(bookValue(p))}</td>
+        <td data-lbl="% Book">&mdash;</td>
+        <td data-lbl="Current">$${fmt0(actualValue(p))}</td>
+        <td data-lbl="Unrealized" style="color:${pl>=0?'#16a34a':'#be123c'};font-weight:700;">${pl>=0?'+':''}$${fmt0(pl)}</td>
+      </tr>`;
+    });
+    if(t.lots.length>1){
+      const totPL = t.actual-t.book;
+      h += `<tr class="ps-consol">
+        <td style="color:${tickerColor(t.ticker)};font-weight:800;">${t.ticker}</td>
+        <td data-lbl="Acct" style="font-weight:700;">ALL LOTS</td>
+        <td data-lbl="Shares">${fmt0(t.shares)}</td>
+        <td data-lbl="Avg Cost">$${fmtPx(t.avgCost)}</td>
+        <td data-lbl="Book Value">$${fmt0(t.book)}</td>
+        <td data-lbl="% Book">${t.pct.toFixed(1)}%</td>
+        <td data-lbl="Current">$${fmt0(t.actual)}</td>
+        <td data-lbl="Unrealized" style="color:${totPL>=0?'#16a34a':'#be123c'};font-weight:700;">${totPL>=0?'+':''}$${fmt0(totPL)}</td>
+      </tr>`;
+    }
+  });
+  h += '</tbody></table></div>';
+  h += '<p class="ps-foot">Read-only report. Entry/Stop/Target stay in Scenario view — they\'re per-lot Chandelier risk parameters (different entry dates → different high-water marks), not portfolio totals, so they don\'t belong blended into one number here.</p>';
+
+  container.innerHTML = h;
+}
+function tickerColor(t){
+  const palette=['#0d9488','#d97706','#b91c1c','#2563eb','#7c3aed','#16a34a','#c2410c','#0e7490','#be185d','#4d7c0f','#57534e','#0369a1'];
+  let hash=0; for(let i=0;i<t.length;i++) hash=(hash*31+t.charCodeAt(i))>>>0;
+  return palette[hash%palette.length];
+}
+
+function render(){
+  document.getElementById('normShares').value = normShares;
+
+  document.querySelectorAll('#viewToggle button').forEach(b=>b.classList.toggle('active', b.dataset.view===viewMode));
+  const accWrap = document.getElementById('accounts');
+  const summaryWrap = document.getElementById('portfolioSummary');
+  if(viewMode==='summary'){
+    accWrap.style.display='none'; summaryWrap.style.display='';
+    renderPortfolioSummary(summaryWrap);
+    return;
+  }
+  accWrap.style.display=''; summaryWrap.style.display='none';
+  accWrap.innerHTML = '';
+  ['RRSP','TFSA'].forEach(acct=>{
+    const accPositions = positions.filter(p=>p.account===acct);
+    const totalActual = accPositions.reduce((s,p)=>s+actualValue(p),0);
+    const totalBook = accPositions.reduce((s,p)=>s+bookValue(p),0);
+    const totalPL = totalActual-totalBook;
+    const total = accountCashTotal(acct);
+    const collapsed = acctCollapsed[acct];
+    const reviewCount = accPositions.filter(p=>isBreached(p)).length;
+
+    const card = document.createElement('div');
+    card.className='acct-card';
+    card.innerHTML = `
+      <div class="acct-hdr ${acct.toLowerCase()}">
+        <div class="acct-hdr-top">
+          <div class="acct-name" data-acct-toggle="${acct}">
+            <button type="button" class="acct-collapse" aria-label="Toggle ${acct}">
+              <svg width="16" height="16" viewBox="0 0 16 16" style="transform:rotate(${collapsed?'-90deg':'0deg'});transition:transform .15s;">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button><span class="acct-name-txt">${acct}</span>
+            ${reviewCount ? `<span class="review-badge"><span class="rb-atr">ATR</span>${reviewCount}</span>` : ''}
+          </div>
+          <div class="acct-stats">
+            Book <b>$${fmt0(totalBook)}</b> &middot; Actual <b>$${fmt0(totalActual)}</b><br>
+            P&amp;L <b style="color:${totalPL>=0?'#16a34a':'#be123c'}">${totalPL>=0?'+':''}$${fmt0(totalPL)}</b>
+          </div>
+        </div>
+        <div class="acct-cash">
+          <label>${acct} Base Cash (CAD)</label>
+          <div class="dollar-field cash-dollar"><span class="dollar-sign">$</span><input type="number" id="cash${acct}" step="1" value="${acct==='RRSP'?cash.RRSP:cash.TFSA}"></div>
+          <div class="cash-breakdown" id="cash${acct}-breakdown"></div>
+        </div>
+      </div>
+      <div class="acct-body" id="body-${acct}" style="${collapsed?'display:none;':''}"></div>
+    `;
+    accWrap.appendChild(card);
+
+    card.querySelector('[data-acct-toggle]').addEventListener('click', ()=>{
+      acctCollapsed[acct] = !acctCollapsed[acct];
+      saveCollapsed(); render();
+    });
+    const cashInp = card.querySelector('#cash'+acct);
+    if(cashInp) cashInp.addEventListener('change', e=>{ cash[acct]=parseFloat(e.target.value)||0; saveCash(); render(); });
+    renderCashBreakdown(acct);
+
+    // Skip building the body entirely while collapsed — on mobile this is
+    // ~10 position cards per account that don't need to exist.
+    if(collapsed) return;
+
+    const body = card.querySelector('#body-'+acct);
+    body.appendChild(renderNewBuy(acct));
+
+    body.insertAdjacentHTML('beforeend', `<div class="section-lbl">Positions</div>`);
+    const ordered = [...accPositions].sort((a,b)=>(b.moveToTop?1:0)-(a.moveToTop?1:0));
+    ordered.forEach(p=>body.appendChild(renderPosCard(p)));
+  });
+
+}
+
+function sellWarnHTML(p){
+  const avail = Math.max(0, p.shares - (p.coreShares||0));
+  if(p.isCore && (p.sellQty||0) > avail){
+    const into = (p.sellQty||0) - avail;
+    return '&#9888; EXCEEDS CORE BY: '+fmt0(into)+' SHARE'+(into===1?'':'S');
+  }
+  return '';
+}
+function paintSellWarn(div, p){
+  const el = div.querySelector('[data-sell-warn]');
+  if(!el) return;
+  el.innerHTML = sellWarnHTML(p);
+  el.style.display = el.innerHTML ? 'block' : 'none';
+}
+function renderPosCard(p){
+  const div = document.createElement('div');
+  div.className = 'pos-card';
+  div.dataset.account = p.account;
+  const bv = bookValue(p), av = actualValue(p), gain = pl(p), gainPct = plPct(p);
+  const rr = riskReward(p.entry, p.stop, p.target);
+  const held = p.shares>0;
+  const riskDollar = (p.entry-p.stop)*p.shares;
+  const rewardDollar = (p.target-p.entry)*p.shares;
+  const available = Math.max(0, p.shares-p.coreShares);
+
+  div.innerHTML = `
+    <div class="pos-top" style="background:${tickerTint(p.ticker)};">
+      <div class="pos-ident">
+        <div class="pos-ident-row">
+          <span class="pos-ticker" style="color:${BADGE_COLORS[p.ticker]||'#0f172a'}">${p.ticker}</span>
+          <span class="pos-name">${p.name}</span>
+          <span class="exch-badge">${p.exch}</span>
+        </div>
+        <div class="pos-signals">
+          ${volState(p.ticker) ? `<span class="vol-badge ${volState(p.ticker).cls}" title="VOLUME — two measures:&#10;• Level: ${VOLUME[p.ticker].level}x — today's volume (${fmt0(VOLUME[p.ticker].last)}) vs the 20-day average (${fmt0(VOLUME[p.ticker].avg20)}). Above 1.0x = today is busier than usual.&#10;• Trend: ${VOLUME[p.ticker].trend}x — the last 3 days' average vs the prior 10 days'. Above 1.0x = participation is building.&#10;&#10;State: ${volState(p.ticker).label}&#10;&#10;Volume is directionally NEUTRAL — a surge can be panic selling or accumulation. It tells you HOW MUCH attention, not which way.">VOL ${volState(p.ticker).label}</span>` : ''}
+          ${relStrength(p.ticker) ? (()=>{ const r=relStrength(p.ticker); const beat=r.rs>=0;
+            return `<span class="rs-badge ${beat?'up':'down'}" data-rs-badge>RS ${beat?'+':''}${r.rs}% <span class="info-i">i</span>
+              <span class="rs-pop">
+                <b class="rs-pop-title">Relative Strength — ${p.ticker}</b>
+                <span class="rs-pop-eq">${p.ticker} 20-day move &nbsp;<b>${r.chg20>=0?'+':''}${r.chg20}%</b></span>
+                <span class="rs-pop-eq">&minus; ${BENCH_TICKER} 20-day move &nbsp;<b>${BENCH_20D>=0?'+':''}${BENCH_20D}%</b></span>
+                <span class="rs-pop-eq rs-pop-res">= Relative Strength &nbsp;<b>${beat?'+':''}${r.rs}%</b></span>
+                <span class="rs-pop-body"><b>What it is.</b> ${BENCH_TICKER} is the VanEck Junior Gold Miners ETF — a proxy for the whole junior mining sector. RS is simply how much this stock beat (or lagged) that sector over the last 20 trading days.</span>
+                <span class="rs-pop-body"><b>Why it matters.</b> A falling price doesn't tell you <i>why</i> it's falling. RS separates a <i>company</i> problem from a <i>sector</i> problem:
+                  <span class="rs-pop-ex">&bull; Down 3% while the sector is down 8% &rarr; <b>strength.</b> It's holding up better than its peers.</span>
+                  <span class="rs-pop-ex">&bull; Up 2% while the sector is up 10% &rarr; <b>weakness.</b> It's being left behind in a rising tide.</span>
+                </span>
+                <span class="rs-pop-body"><b>Reading this one.</b> ${beat
+                  ? `${p.ticker} is <b>outperforming</b> its sector by ${r.rs}pts. Whatever is happening to it, it isn't just the tide going out.`
+                  : `${p.ticker} is <b>lagging</b> its sector by ${Math.abs(r.rs)}pts. It's underperforming peers, not merely falling with them.`}</span>
+                <span class="rs-pop-foot">20-day window &middot; benchmark ${BENCH_TICKER} &middot; as of ${PRICE_AS_OF}</span>
+              </span>
+            </span>`;})() : ''}
+          ${isBreached(p) ? `<span class="review-badge" title="Price $${fmtPx(p.price)} is below the ${ATR_MULTIPLIER}× ATR trailing stop of $${fmtPx(chandelierStop(p))} (trailing from high of $${fmtPx(HIGH_WATER[p.id].high)} since ${HIGH_WATER[p.id].anchor}). This is a prompt to review catalysts/filings/macro — not a sell signal."><span class="rb-atr">ATR</span>REVIEW</span>` : ''}
+        </div>
+      </div>
+      <div class="pos-topright">
+        <label class="mtt-toggle" title="Move to top of list"><input type="checkbox" data-f-movetop ${p.moveToTop?'checked':''}>TOP</label>
+        <span class="card-id">${p.id}</span>
+        <div class="pos-sub" data-sub>${held? fmt0(p.shares)+' SHS @ $'+fmtPx(p.avgCost) : 'WATCHING'}</div>
+      </div>
+    </div>
+
+    ${incoherence(p) ? `<div class="incoh-strip">
+      <span><b>Levels don't add up.</b> ${incoherence(p)}</span>
+    </div>` : ''}
+
+    ${p.staleVs ? `<div class="stale-strip">
+      <span><b>Book changed.</b> Your saved inputs here were entered when this position was
+      ${p.staleVs.replace('@',' shs @ $')} — it's now ${fmt0(p.shares)} shs @ $${fmtPx(p.avgCost)}.
+      The numbers below were reasoned against a position that no longer exists.</span>
+      <button data-stale-refresh="${p.id}">RE-ANCHOR</button>
+    </div>` : ''}
+
+    <div class="pos-grid">
+      <div><label>Price</label><div class="dollar-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-f="price" value="${fmtPx(p.price)}"></div>
+        <div class="rr-dollar" data-rr-caption><span class="rd-label">R:R</span><span class="rd-value ${rr!==null&&rr>=1?'pos':'neg'}" data-rr>${rr===null?'N/A':'1 : '+rr.toFixed(1)}</span></div>
+      </div>
+      <div><label title="${chandelierStop(p)!==null ? ATR_MULTIPLIER+'x ATR trailing stop. High-water $'+fmtPx(HIGH_WATER[p.id].high)+' since '+HIGH_WATER[p.id].anchor+' minus '+ATR_MULTIPLIER+' x ATR ('+fmtPx(ATR[p.ticker])+'). Trails up only.' : 'No position — no trailing stop.'}">Stop${chandelierStop(p)!==null?' <span class="atr-tag">ATR</span>':''}</label><div class="dollar-field derived-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-f="stop" value="${fmtPx(p.stop)}" readonly class="derived" title="Derived, not editable. This stop is computed live from the ${ATR_MULTIPLIER}x ATR Chandelier calc every time the tool loads — so it can never go stale. A typed stop would be silently overwritten on the next load, which is worse than not being able to type one at all."></div>
+        <div class="rr-dollar" data-risk-dollar><span class="rd-label">Risk</span><span class="rd-value ${p.entry>=p.stop?'':'neg'}">$${fmt0(riskDollar)}</span></div>
+      </div>
+      <div><label>Entry</label><div class="dollar-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-f="entry" value="${fmtPx(p.entry)}"></div>
+        ${(()=>{ const r=range20(p); if(!r) return '';
+          const band = r.pct>=80?'hot':(r.pct<=20?'cold':'mid');
+          // % rides ABOVE the marker — free vertical space — so the low/high
+          // values keep the full width and aren't crowded out.
+          const nudge = r.pct>85 ? 'translateX(-100%)' : (r.pct<15 ? 'translateX(0)' : 'translateX(-50%)');
+          return `<div class="rng20 ${band}" data-rng20 title="20-session range. Low $${fmtPx(r.lo)} — High $${fmtPx(r.hi)}. Price is ${r.pct.toFixed(0)}% of the way up that range. Context, not a signal.">
+            <div class="rng-top"><span class="rng-pct" style="left:${r.pct}%;transform:${nudge}">${r.pct.toFixed(0)}%</span></div>
+            <div class="rng-bar"><div class="rng-fill" style="width:${r.pct}%"></div><div class="rng-mark" style="left:${r.pct}%"></div></div>
+            <div class="rng-txt"><span>${fmtPx(r.lo)}</span><span>${fmtPx(r.hi)}</span></div>
+          </div>`; })()}
+        <div class="entry-total" data-entry-total><span class="et-label">${p.account} cash</span><span class="et-value" style="${accountCashTotal(p.account)<0?'color:var(--rose-text)':''}">$${fmt0(accountCashTotal(p.account))}</span></div>
+      </div>
+      <div><label>Target</label><div class="dollar-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-f="target" value="${fmtPx(p.target)}"></div>
+        <div class="rr-dollar" data-reward-dollar><span class="rd-label">Reward</span><span class="rd-value ${p.target>=p.entry?'pos':'neg'}">$${fmt0(rewardDollar)}</span></div>
+      </div>
+    </div>
+
+    <div class="scenario-tabs">
+      <button data-mode="book" class="${p.mode==='book'?'active':''}">Book</button>
+      <button data-mode="target" class="${p.mode==='target'?'active':''}">Book <svg width="9" height="9" viewBox="0 0 16 16" style="transform:rotate(-90deg);vertical-align:middle;margin:0 1px;"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Target</button>
+      <button data-mode="newbook" class="${p.mode==='newbook'?'active':''}">New Book</button>
+    </div>
+    <div class="scenario-body" data-scenario></div>
+
+    <div class="mini-row sell-row ${p.sellChecked?'sell-locked':''}" data-row="sell">
+      <div><label>Confirm</label><div class="ctl"><input type="checkbox" data-f="sellChecked" ${p.sellChecked?'checked':''}></div></div>
+      <div><label>Sell Qty</label><div class="ctl"><input type="number" step="1" data-f="sellQty" value="${p.sellQty}" ${p.sellChecked?'disabled':''}></div></div>
+      <div><label>Sell Px</label><div class="dollar-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-f="sellPrice" value="${fmtPx(p.sellPrice)}" ${p.sellChecked?'disabled':''}></div></div>
+      <div><label>Total</label><div class="ctl"><b data-sell-total>$${fmt0((p.sellQty||0)*(p.sellPrice||0))}</b></div></div>
+    </div>
+    <div class="sell-warn" data-sell-warn></div>
+
+    <div class="mini-row ${p.isCore?'core-locked':''}" data-row="core">
+      <div><label>Confirm</label><div class="ctl"><input type="checkbox" data-f="isCore" ${p.isCore?'checked':''}></div></div>
+      <div><label>Core Shares</label><div class="ctl"><input type="number" step="1" min="0" max="${p.shares}" data-f="coreShares" value="${p.coreShares}" ${p.isCore?'disabled':''}></div></div>
+      <div><label>Available</label><div class="ctl"><b data-core-avail>${fmt0(available)} SHS</b></div></div>
+    </div>
+  `;
+
+  renderScenario(div, p);
+
+  // RS info popover. A real click-to-open panel rather than the native `title`
+  // attribute, because native tooltips (a) don't fire at all on touch devices
+  // — which is where this gets used most — and (b) truncate long text.
+  const rsBadge = div.querySelector('[data-rs-badge]');
+  if(rsBadge){
+    rsBadge.addEventListener('click', e=>{
+      if(e.target.closest('.rs-pop')) return;  // clicks inside the panel shouldn't close it
+      e.stopPropagation();
+      const wasOpen = rsBadge.classList.contains('open');
+      document.querySelectorAll('.rs-badge.open').forEach(b=>b.classList.remove('open'));
+      if(!wasOpen) rsBadge.classList.add('open');
+    });
+  }
+
+  // Live recalc on every keystroke — updates numbers in place, never
+  // touches the input elements themselves, so focus/cursor never moves.
+  // Saves to storage on blur (change) so we're not hammering it per keystroke.
+  const staleBtn = div.querySelector('[data-stale-refresh]');
+  if(staleBtn) staleBtn.addEventListener('click', ()=>refreshCardFromBook(staleBtn.dataset.staleRefresh));
+
+  div.querySelectorAll('.pos-grid input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      p[e.target.dataset.f] = parseFloat(e.target.value);
+      if(isNaN(p[e.target.dataset.f])) p[e.target.dataset.f] = 0;
+      updatePosCardNumbers(div, p);
+    });
+    inp.addEventListener('change', e=>{ savePos(p); });
+  });
+  div.querySelectorAll('.mini-row input[type="number"]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      let v = parseFloat(e.target.value);
+      if(isNaN(v)) v = 0;
+      if(e.target.dataset.f==='stop'){
+        // Derived field. Never accept a write — the Chandelier calc owns it.
+        e.target.value = fmtPx(p.stop);
+        return;
+      }
+      if(e.target.dataset.f==='coreShares'){
+        if(v<0) v=0; if(v>p.shares) v=p.shares;
+        e.target.value = v;
+        div.querySelector('[data-core-avail]').textContent = fmt0(Math.max(0,p.shares-v))+' SHS';
+      }
+      p[e.target.dataset.f] = v;
+      if(e.target.dataset.f==='sellQty' || e.target.dataset.f==='sellPrice'){
+        const te = div.querySelector('[data-sell-total]');
+        if(te) te.textContent = '$'+fmt0((p.sellQty||0)*(p.sellPrice||0));
+      }
+      if(e.target.dataset.f==='sellQty' || e.target.dataset.f==='coreShares'){ paintSellWarn(div, p); }
+    });
+    inp.addEventListener('change', e=>{ savePos(p); });
+  });
+  const mttEl = div.querySelector('[data-f-movetop]');
+  if(mttEl) mttEl.addEventListener('change', e=>{ p.moveToTop = e.target.checked; savePos(p); flushPending(); render(); });
+  paintSellWarn(div, p);
+  div.querySelector('[data-f="isCore"]').addEventListener('change', e=>{
+    p.isCore = e.target.checked;
+    savePos(p); render();
+  });
+  div.querySelector('[data-f="sellChecked"]').addEventListener('change', e=>{
+    // Just flips the flag — accountCashTotal() picks it up automatically.
+    // No separate cash write here, so there's nothing to fall out of sync.
+    p.sellChecked = e.target.checked;
+    savePos(p); render();
+  });
+  div.querySelectorAll('.scenario-tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      p.mode = btn.dataset.mode;
+      savePos(p); render();
+    });
+  });
+
+  // ── Normalized share strip (share structure + size comparison) ──
+  (function(){
+    const nm = normMetrics(p.ticker, p.price);
+    const grid = div.querySelector('.pos-grid');
+    if(!nm || !grid) return;
+    const strip = document.createElement('div');
+    strip.className = 'norm-strip';
+    const evPct = nm.mktCap>0 ? Math.round(nm.cash/nm.mktCap*100) : 0;
+    strip.innerHTML =
+      '<div class="ns-cell"><span class="ns-l">Norm Price</span><span class="ns-v">$'+fmtPx(nm.normPrice)+'</span><span class="ns-sub">EV-adj $'+fmtPx(nm.evNormPrice)+'</span></div>'
+     +'<div class="ns-cell"><span class="ns-l">Ratio vs Norm</span><span class="ns-v">'+nm.ratio.toFixed(2)+'\u00d7</span><span class="ns-sub">'+(nm.ratio>1?'more':'fewer')+' shares</span></div>'
+     +'<div class="ns-cell"><span class="ns-l">Issued Shares</span><span class="ns-v">'+fmtM(nm.shares)+'</span><span class="ns-sub">'+evPct+'% cash</span></div>'
+     +'<div class="ns-foot">Mkt cap <b>$'+fmt0(nm.mktCap)+'</b> &middot; Cash <b>$'+fmt0(nm.cash)+'</b> &middot; EV <b>$'+fmt0(nm.ev)+'</b></div>';
+    const rw = runwayInfo(p.ticker);
+    if(rw){
+      const rwCol = rw.months<6 ? '#be123c' : (rw.months<12 ? '#b45309' : '#15803d');
+      const rwTxt = rw.months>=24 ? ('~'+(rw.months/12).toFixed(1)+' yr') : ('~'+Math.round(rw.months)+' mo');
+      const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const outTxt = MO[rw.out.getMonth()]+" '"+String(rw.out.getFullYear()).slice(2);
+      const elapsed = rw.out < new Date();
+      const tail = elapsed ? ' <b>cash-out elapsed</b> (raise likely done or overdue &mdash; refresh filing)'
+                           : ' cash-out ~'+outTxt;
+      strip.innerHTML += '<div class="ns-runway" style="color:'+(elapsed?'#be123c':rwCol)+'">Burn ~$'+fmt0(rw.burn)+'/mo &nbsp;|&nbsp; Runway <b>'+rwTxt+'</b> &nbsp;|&nbsp;'+tail+(rw.est?' <span class="rw-est">EST</span>':'')+'</div>';
+    }
+    div.appendChild(strip); // normalized strip sits at the BOTTOM, under CORE
+  })();
+
+  // ── Per-card expand/collapse ──────────────────────────────────
+  // Wrap everything after the header into a collapsible body. Default:
+  // WATCHING cards (0 shares) start collapsed, held cards start open — so
+  // you see the active positions and open the rest as needed. An explicit
+  // toggle is remembered per card in IndexedDB.
+  const posBody = document.createElement('div');
+  posBody.className = 'pos-body'; posBody.dataset.posBody = '';
+  const topEl = div.querySelector('.pos-top');
+  while(topEl.nextSibling){ posBody.appendChild(topEl.nextSibling); }
+  div.appendChild(posBody);
+  const savedC = cardCollapsed[p.id];
+  let cCollapsed = (savedC===undefined) ? (p.shares<=0) : !!savedC;
+  const tog = document.createElement('button');
+  tog.type='button'; tog.className='card-collapse'; tog.setAttribute('aria-label','Expand/collapse card');
+  tog.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const applyC = (c)=>{ posBody.style.display = c?'none':''; div.classList.toggle('is-collapsed', c); tog.querySelector('svg').style.transform = c?'rotate(-90deg)':'rotate(0deg)'; };
+  applyC(cCollapsed);
+  tog.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    cCollapsed = !div.classList.contains('is-collapsed');
+    cardCollapsed[p.id] = cCollapsed;
+    applyC(cCollapsed);
+    try{ await stSet('rebal:cardCollapsed', JSON.stringify(cardCollapsed)); }catch(_){}
+  });
+  const identRow = div.querySelector('.pos-ident-row');
+  if(identRow) identRow.insertBefore(tog, identRow.firstChild);
+
+  return div;
+}
+
+function updatePosCardNumbers(div, p){
+  const rr = riskReward(p.entry, p.stop, p.target);
+  const riskDollar = (p.entry-p.stop)*p.shares;
+  const rewardDollar = (p.target-p.entry)*p.shares;
+
+  const rrEl = div.querySelector('[data-rr-caption] [data-rr]');
+  rrEl.textContent = rr===null?'N/A':'1 : '+rr.toFixed(1);
+  rrEl.className = 'rd-value' + (rr!==null&&rr>=1?' pos':' neg');
+
+  const riskEl = div.querySelector('[data-risk-dollar] .rd-value');
+  riskEl.textContent = '$'+fmt0(riskDollar);
+  riskEl.className = 'rd-value' + (p.entry>=p.stop?'':' neg');
+
+  const rewardEl = div.querySelector('[data-reward-dollar] .rd-value');
+  rewardEl.textContent = '$'+fmt0(rewardDollar);
+  // Colour off target-vs-entry, not the dollar product: with 0 shares the
+  // product is -0, and (-0 >= 0) is true in JS, which wrongly showed green
+  // for a target sitting BELOW entry.
+  rewardEl.className = 'rd-value' + (p.target>=p.entry?' pos':' neg');
+
+  // 20-day range bar was baked in at card-build time from the initial price
+  // and never touched again here — it only ever caught up when something
+  // else (e.g. the Confirm Sell checkbox) triggered a full render(). Update
+  // it live on every price keystroke, same as everything else in this fn.
+  const rngEl = div.querySelector('[data-rng20]');
+  const r = range20(p);
+  if(rngEl && r){
+    rngEl.className = 'rng20 ' + (r.pct>=80?'hot':(r.pct<=20?'cold':'mid'));
+    rngEl.title = '20-session range. Low $'+fmtPx(r.lo)+' — High $'+fmtPx(r.hi)+'. Price is '+r.pct.toFixed(0)+'% of the way up that range. Context, not a signal.';
+    const pctEl = rngEl.querySelector('.rng-pct');
+    const nudge = r.pct>85 ? 'translateX(-100%)' : (r.pct<15 ? 'translateX(0)' : 'translateX(-50%)');
+    pctEl.style.left = r.pct+'%';
+    pctEl.style.transform = nudge;
+    pctEl.textContent = r.pct.toFixed(0)+'%';
+    rngEl.querySelector('.rng-fill').style.width = r.pct+'%';
+    rngEl.querySelector('.rng-mark').style.left = r.pct+'%';
+  }
+
+  renderScenario(div, p); // scenario body is a sibling of pos-grid, safe to rebuild — doesn't touch focus
+  refreshEntryTotals();
+}
+
+function renderScenario(div, p){
+  const box = div.querySelector('[data-scenario]');
+  const bv = bookValue(p), av = actualValue(p);
+
+  if(p.mode==='book'){
+    if(p.shares<=0){
+      box.innerHTML = `<div class="row" style="justify-content:center;padding:10px 0;color:var(--text3);font-weight:700;letter-spacing:.04em;">NO POSITION</div>`;
+    } else {
+    box.innerHTML = `
+      <div class="row"><span>Book value</span><b>$${fmt0(bv)}</b></div>
+      <div class="row"><span>Actual value (at current px)</span><b>$${fmt0(av)}</b></div>
+      <div class="row"><span>Unrealized P&amp;L</span><b class="${av-bv>=0?'pos':'neg'}">${av-bv>=0?'+':''}$${fmt0(av-bv)}${bv?' ('+((av-bv)/bv*100).toFixed(1)+'%)':''}</b></div>
+    `;
+    }
+  } else if(p.mode==='newbook'){
+    const addAmt = p.addAmt||0;
+    const buyPx = (p.entry>0 ? p.entry : p.price);   // buy at ENTRY when set, else market price
+    const usingEntry = (p.entry>0);
+    const addShares = buyPx>0 ? addAmt/buyPx : 0;
+    const newShares = p.shares+addShares;
+    const newBook = bv+addAmt;
+    const newAvg = newShares>0 ? newBook/newShares : 0;
+    const rr = riskReward(buyPx, p.stop, p.target);
+    const remaining = accountCashTotal(p.account); // already includes this amount, live
+    box.innerHTML = `
+      <div class="row"><span>Amount to add</span><div class="dollar-field"><span class="dollar-sign">$</span><input class="amt" type="number" step="10" value="${addAmt}" data-newbuy-amt></div></div>
+      <div class="row"><span>Shares this buys @ $${fmtPx(buyPx)}${usingEntry?' <span style="color:var(--sky-text);font-weight:700">(entry)</span>':' (mkt)'}</span><b data-nb-shares>${fmt0(addShares)}</b></div>
+      <div class="row"><span>New total shares</span><b data-nb-total-shares>${fmt0(newShares)}</b></div>
+      <div class="row"><span>New blended avg cost</span><b data-nb-avg>$${fmtPx(newAvg)}</b></div>
+      <div class="row"><span>New book value</span><b data-nb-book>$${fmt0(newBook)}</b></div>
+      <div class="row"><span>Value at target${p.target>0?' ($'+fmtPx(p.target)+')':''}</span><b data-nb-vtarget>${p.target>0?'$'+fmt0(newShares*p.target):'&mdash;'}</b></div>
+      <div class="row"><span>R:R buying here vs. stop/target</span><b>${rr===null?'N/A':'1 : '+rr.toFixed(1)}</b></div>
+      <div class="row" style="border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;"><span>${p.account} cash after this amount</span><b data-nb-remaining style="${remaining<0?'color:var(--rose-text)':''}">$${fmt(remaining,2)}</b></div>
+    `;
+    box.querySelector('[data-newbuy-amt]').addEventListener('input', e=>{
+      p.addAmt = parseFloat(e.target.value);
+      if(isNaN(p.addAmt)) p.addAmt = 0;
+      const bPx = (p.entry>0 ? p.entry : p.price);   // #5 — entry when set
+      const aShares = bPx>0 ? p.addAmt/bPx : 0;
+      const nShares = p.shares+aShares;
+      const nBook = bv+p.addAmt;
+      const nAvg = nShares>0 ? nBook/nShares : 0;
+      box.querySelector('[data-nb-shares]').textContent = fmt0(aShares);
+      box.querySelector('[data-nb-total-shares]').textContent = fmt0(nShares);
+      box.querySelector('[data-nb-avg]').textContent = '$'+fmtPx(nAvg);
+      box.querySelector('[data-nb-book]').textContent = '$'+fmt0(nBook);
+      const vt = box.querySelector('[data-nb-vtarget]');
+      if(vt) vt.innerHTML = p.target>0 ? '$'+fmt0(nShares*p.target) : '&mdash;';
+      const rem = accountCashTotal(p.account); // reflects this keystroke immediately
+      const remEl = box.querySelector('[data-nb-remaining]');
+      remEl.textContent = '$'+fmt(rem,2);
+      remEl.style.color = rem<0 ? 'var(--rose-text)' : '';
+      refreshCashDependents(p.account, div); // update cash bar + every other card in this account
+      savePos(p); // persist as you type (debounced) — 'change' alone misses closing the app mid-edit
+    });
+    box.querySelector('[data-newbuy-amt]').addEventListener('change', ()=>savePos(p));
+  } else if(p.mode==='target'){
+    const projValue = p.shares*p.target;
+    const projGain = projValue-bv;
+    const projPct = bv? projGain/bv : 0;
+    box.innerHTML = `
+      <div class="row"><span>Shares held (unchanged)</span><b>${fmt0(p.shares)}</b></div>
+      <div class="row"><span>Value if target hit</span><b>$${fmt0(projValue)}</b></div>
+      <div class="row"><span>Projected gain vs. book</span><b>${projGain>=0?'+':''}$${fmt0(projGain)} (${(projPct*100).toFixed(0)}%)</b></div>
+    `;
+  }
+}
+
+let newBuyState = {
+  RRSP: {ticker:'RDU', amt:0, entry:0, stopPct:5, target:0, collapsed:true},
+  TFSA: {ticker:'RDU', amt:0, entry:0, stopPct:5, target:0, collapsed:true},
+};
+
+function renderNewBuy(acct){
+  const st = newBuyState[acct];
+
+  const div = document.createElement('div');
+  div.className = 'pos-card';
+  div.dataset.account = acct;
+  div.innerHTML = `
+    <div class="pos-top" style="background:#f1f5f9;">
+      <div style="display:flex;align-items:center;gap:5px;">
+        <button type="button" class="collapse-toggle" data-nb-collapse-btn aria-label="Toggle" style="padding:0;">
+          <svg width="16" height="16" viewBox="0 0 16 16" style="transform:rotate(${st.collapsed?'-90deg':'0deg'});transition:transform .15s;">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="pos-ticker" style="color:#0f172a">NEW BUY</span>
+        <span class="card-id">newbuy-${acct.toLowerCase()}</span>
+      </div>
+    </div>
+
+    <div data-nb-body style="${st.collapsed?'display:none;':''}">
+    <div class="pos-grid" style="grid-template-columns:1fr 1fr;">
+      <div><label>Ticker</label>
+        <input type="text" data-nb="ticker" value="${st.ticker}" placeholder="e.g. NEWCO" style="text-transform:uppercase;">
+      </div>
+      <div><label>Amount</label>
+        <div class="dollar-field" style="margin-top:2px;"><span class="dollar-sign">$</span><input type="number" step="10" data-nb="amt" value="${st.amt}"></div>
+      </div>
+    </div>
+    <div class="pos-grid">
+      <div><label>Entry</label><div class="dollar-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-nb="entry" value="${fmtPx(st.entry)}"></div></div>
+      <div><label>Stop %</label><input type="number" step="0.5" min="0" max="100" data-nb="stopPct" value="${st.stopPct}">
+        <div class="rr-dollar" data-nb-stop-caption><span class="rd-label">Stop</span><span class="rd-value" data-nb-stop-value></span></div>
+      </div>
+      <div><label>Target</label><div class="dollar-field"><span class="dollar-sign">$</span><input type="number" step="0.001" inputmode="decimal" data-nb="target" value="${fmtPx(st.target)}"></div></div>
+    </div>
+    <div class="scenario-body" data-nb-result></div>
+    </div>
+  `;
+
+  div.querySelector('[data-nb-collapse-btn]').addEventListener('click', ()=>{
+    st.collapsed = !st.collapsed;
+    saveNewBuy(acct); render();
+  });
+
+  const recalc = ()=>{
+    const amt = st.amt||0, entry = st.entry||0, target = st.target||0;
+    const stopValue = entry * (1 - (st.stopPct||0)/100);
+    const shares = entry>0 ? amt/entry : 0;
+    const totalRisk = (entry-stopValue)*shares;
+    const rr = riskReward(entry, stopValue, target);
+    const remaining = accountCashTotal(acct); // already includes this amount, live
+    div.querySelector('[data-nb-stop-value]').textContent = '$'+fmtPx(stopValue);
+    div.querySelector('[data-nb-result]').innerHTML = `
+      <div class="row"><span>Shares this buys</span><b>${fmt0(shares)}</b></div>
+      <div class="row"><span>Stop value</span><b>$${fmtPx(stopValue)}</b></div>
+      <div class="row"><span>Risk to stop</span><b>$${fmt0(totalRisk)}</b></div>
+      <div class="row"><span>R:R</span><b>${rr===null?'N/A':'1 : '+rr.toFixed(1)}</b></div>
+      <div class="row" style="border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;"><span>${acct} cash after this amount</span><b data-nb-remaining style="${remaining<0?'color:var(--rose-text)':''}">$${fmt(remaining,2)}</b></div>
+    `;
+  };
+  recalc();
+
+  div.querySelector('[data-nb="ticker"]').addEventListener('change', e=>{
+    st.ticker = e.target.value.toUpperCase().trim();
+    const match = positions.find(p=>p.ticker===st.ticker);
+    if(match){ st.entry = match.price; st.target = match.target; }
+    saveNewBuy(acct); render();
+  });
+  div.querySelector('[data-nb="amt"]').addEventListener('input', e=>{
+    st.amt = parseFloat(e.target.value);
+    if(isNaN(st.amt)) st.amt = 0;
+    recalc();
+    refreshCashDependents(acct, div);
+  });
+  div.querySelector('[data-nb="amt"]').addEventListener('change', ()=>saveNewBuy(acct));
+  ['entry','stopPct','target'].forEach(f=>{
+    div.querySelector(`[data-nb="${f}"]`).addEventListener('input', e=>{
+      st[f] = parseFloat(e.target.value);
+      if(isNaN(st[f])) st[f] = 0;
+      recalc();
+    });
+    div.querySelector(`[data-nb="${f}"]`).addEventListener('change', ()=>saveNewBuy(acct));
+  });
+
+  return div;
+}
+
+// Dismiss any open RS popover on click-away or Escape.
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.rs-badge.open').forEach(b=>b.classList.remove('open'));
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') document.querySelectorAll('.rs-badge.open').forEach(b=>b.classList.remove('open'));
+});
+
+document.getElementById('normShares').addEventListener('change', async e=>{ normShares=parseFloat(e.target.value)||DEFAULT_NORM_SHARES; try{ await stSet('rebal:normShares', String(normShares)); }catch(_){} render(); });
+
+
+/* ============================================================================
+   EXPORT STATE
+   IndexedDB is the fast working surface. The FILE is the durable record.
+   This is the bridge: it dumps everything you've typed so Claude can bake it
+   into the next build — at which point it survives eviction, survives a new
+   device, and is identical on desktop and mobile.
+   The book (shares/avgCost/price) is NOT exported: it already lives in the
+   file and is the one thing storage must never be the source of.
+   Clipboard APIs are unreliable in this sandbox, so there is always a
+   visible textarea to select and copy by hand.
+   ========================================================================== */
+
+/* ----------------------------------------------------------------------------
+   INCOHERENCE — arithmetic, not judgement.
+   A target below entry means the "reward" leg is negative. A stop above entry
+   means the "risk" leg is negative. On a long, both make R:R undefined — the
+   card shows N/A and the number you're staring at is meaningless.
+   This does NOT second-guess a thesis. It only catches levels that cannot be
+   true at the same time. Four of these were sitting in the book unnoticed.
+   -------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+   20-DAY RANGE — where price actually sits between its recent low and high.
+   The number that matters isn't the high or the low, it's the POSITION between
+   them. Buying at 95% of range is chasing; buying at 10% is either a gift or a
+   falling knife, and only the catalyst timeline tells you which.
+   This is context, never a signal.
+   -------------------------------------------------------------------------- */
+function range20(p){
+  const r = RANGE20[p.ticker];
+  if(!r || r.hi <= r.lo) return null;
+  const pct = ((p.price - r.lo) / (r.hi - r.lo)) * 100;
+  return {lo:r.lo, hi:r.hi, pct: Math.max(0, Math.min(100, pct))};
+}
+
+function incoherence(p){
+  if(!p.entry || p.entry <= 0) return null;
+  if(p.target > 0 && p.target <= p.entry){
+    return 'Target $'+fmtPx(p.target)+' is at or below entry $'+fmtPx(p.entry)+
+           ' — reward is negative, so R:R cannot be computed.';
+  }
+  if(p.stop > 0 && p.stop >= p.entry){
+    return 'Stop $'+fmtPx(p.stop)+' is at or above entry $'+fmtPx(p.entry)+
+           ' — risk is negative, so R:R cannot be computed.';
+  }
+  return null;
+}
+function incoherent(){
+  return positions.map(p=>({id:p.id, why:incoherence(p)})).filter(x=>x.why);
+}
+
+function buildExport(){
+  // ALL 20 positions, always. The earlier version filtered out rows where
+  // entry and target were both 0 — which meant BIG and OGW appeared in the
+  // readable summary but vanished from the JSON. The two halves of an export
+  // disagreeing with each other is exactly the kind of quiet inconsistency
+  // this whole session has been about.
+  const changed = positions.map(p=>{
+    const d = {id:p.id, entry:p.entry, target:p.target};
+    if((p.addAmt||0) > 0)      d.addAmt = p.addAmt;
+    if(p.coreShares > 0)       d.coreShares = p.coreShares;
+    if(p.isCore)               d.isCore = true;
+    if(p.sellChecked)          d.sellChecked = true;
+    if(p.sellQty !== p.shares) d.sellQty = p.sellQty;
+    if(p.moveToTop)            d.moveToTop = true;
+    return d;
+  });
+
+  const lines = [];
+  lines.push('RBS STATE EXPORT — ' + VERSION);
+  lines.push('generated: ' + new Date().toLocaleString('en-CA'));
+  lines.push('prices as of: ' + PRICE_AS_OF);
+  lines.push('');
+  lines.push('CASH:  RRSP $' + fmt(cash.RRSP,2) + '   TFSA $' + fmt(cash.TFSA,2));
+  lines.push('');
+
+  const staged = positions.filter(p => (p.addAmt||0) > 0 || p.sellChecked || p.isCore || p.coreShares > 0);
+  if(staged.length){
+    lines.push('STAGED / LOCKED:');
+    for(const p of staged){
+      const bits = [];
+      if((p.addAmt||0) > 0) bits.push('add $' + fmt0(p.addAmt));
+      if(p.coreShares > 0)  bits.push('core ' + fmt0(p.coreShares) + ' shs' + (p.isCore ? ' (locked)' : ''));
+      if(p.sellChecked)     bits.push('SELL CONFIRMED ' + fmt0(p.sellQty) + ' @ $' + fmtPx(p.sellPrice));
+      lines.push('  ' + p.id.padEnd(11) + bits.join(' · '));
+    }
+    lines.push('');
+  } else {
+    lines.push('STAGED / LOCKED:  nothing staged');
+    lines.push('');
+  }
+
+  lines.push('LEVELS (entry / target):');
+  for(const p of positions){
+    lines.push('  ' + p.id.padEnd(11) + 'entry $' + fmtPx(p.entry) + '   target $' + fmtPx(p.target));
+  }
+  lines.push('');
+
+  lines.push('NEW BUY CARDS:');
+  for(const acct of ['RRSP','TFSA']){
+    const nb = newBuyState[acct];
+    const empty = !nb.amt && !nb.entry && !nb.target;
+    lines.push('  ' + acct.padEnd(6) + (empty
+      ? 'empty'
+      : nb.ticker + '  $' + fmt0(nb.amt||0) + '  entry $' + fmtPx(nb.entry||0) +
+        '  stop ' + (nb.stopPct||0) + '%  target $' + fmtPx(nb.target||0)));
+  }
+  lines.push('');
+
+  const bad = incoherent();
+  if(bad.length){
+    lines.push('⚠ INCOHERENT LEVELS (arithmetic, not judgement):');
+    for(const b of bad) lines.push('  ' + b.id.padEnd(11) + b.why);
+    lines.push('');
+  }
+
+  lines.push('--- machine-readable, do not edit below ---');
+  lines.push(JSON.stringify({
+    v: VERSION,
+    at: new Date().toISOString(),
+    cash: cash,
+    positions: changed,
+    newBuy: newBuyState
+  }));
+
+  return lines.join('\n');
+}
+
+document.querySelectorAll('#viewToggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.view===viewMode) return;
+    viewMode = btn.dataset.view;
+    saveViewMode(); render();
+  });
+});
+
+document.getElementById('expBtn').addEventListener('click', ()=>{
+  const txt = buildExport();
+  document.getElementById('expText').value = txt;
+  document.getElementById('expOut').style.display = 'block';
+  document.getElementById('expNote').textContent =
+    'Read it over — this is exactly what gets baked into the next build.';
+  document.getElementById('expNote').style.color = 'var(--text3)';
+});
+
+document.getElementById('expCopy').addEventListener('click', ()=>{
+  const ta = document.getElementById('expText');
+  const note = document.getElementById('expNote');
+  ta.focus(); ta.select();
+  try{ ta.setSelectionRange(0, ta.value.length); }catch(e){}
+  let ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  if(ok){
+    note.textContent = '✓ Copied. Paste it into the chat.';
+    note.style.color = '#047857';
+    return;
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(
+      ()=>{ note.textContent = '✓ Copied. Paste it into the chat.'; note.style.color = '#047857'; },
+      ()=>{ note.textContent = 'Clipboard blocked — the text is selected above. Long-press → Copy.'; note.style.color = '#b45309'; });
+  } else {
+    note.textContent = 'Clipboard blocked — the text is selected above. Long-press → Copy.';
+    note.style.color = '#b45309';
+  }
+});
+
+(async()=>{
+  document.getElementById('verBadge').textContent = VERSION;
+  document.getElementById('priceAsOf').textContent = PRICE_AS_OF;
+  await loadState();
+  render();
+  if(loadErrors){
+    STORAGE_ERR = loadErrors+' record(s) failed to load (corrupt?). Check console.';
+    STORAGE_OK = false; setStorageBadge();
+  }
+})();
+</script>
+</body>
+</html>

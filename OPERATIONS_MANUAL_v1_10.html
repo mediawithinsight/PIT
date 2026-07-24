@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Operations Manual — PIT + RBS - v1.10</title>
+<style>
+:root{color-scheme:light dark;
+  --bg:#fbfbfa;--panel:#fff;--text:#1a1a1a;--text2:#3f3f46;--text3:#71717a;--border:#e5e5e5;
+  --accent:#6b21a8;--accent2:#7c3aed;--rose:#be123c;--teal:#0f766e;--code:#f4f4f5;--hbar:rgba(251,251,250,.92);--tocbg:#fff;--bq:#faf5ff;--theven:#fafafa;--thbg:#f4f4f5;}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#181818;--panel:#242424;--text:#ececec;--text2:#c4c4c4;--text3:#8f8f8f;--border:#383838;
+  --accent:#c084fc;--accent2:#d8b4fe;--rose:#fb7185;--teal:#5eead4;--code:#2b2b2b;--hbar:rgba(24,24,24,.94);--tocbg:#242424;--bq:#2a2136;--theven:#1e1e1e;--thbg:#2b2b2b;}}
+*{box-sizing:border-box;}
+html,body{overflow-x:hidden;max-width:100%;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;line-height:1.6;font-size:16px;-webkit-text-size-adjust:100%;overflow-wrap:break-word;}
+.wrap{max-width:820px;margin:0 auto;padding:0 18px 140px;}
+header.doc{position:sticky;top:0;z-index:20;background:var(--hbar);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 18px;margin:0 -18px 18px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+header.doc h1{font-size:17px;margin:0;font-weight:800;letter-spacing:-.01em;color:var(--text);}
+header.doc .ver{font-size:11px;font-weight:700;color:#fff;background:var(--accent);padding:2px 8px;border-radius:5px;}
+@media (prefers-color-scheme: dark){header.doc .ver{color:#1a1a1a;}}
+h1{color:var(--text);}
+h2{font-size:20px;margin:34px 0 10px;padding-top:12px;border-top:2px solid var(--border);font-weight:800;letter-spacing:-.01em;scroll-margin-top:70px;color:var(--text);}
+h3{font-size:15.5px;margin:22px 0 8px;font-weight:800;color:var(--text2);scroll-margin-top:70px;}
+h1+*{margin-top:0;}
+p{margin:10px 0;}
+strong,b{color:var(--text);}
+a{color:var(--accent2);text-decoration:none;}
+a:hover{text-decoration:underline;}
+code{background:var(--code);padding:1.5px 5px;border-radius:4px;font-size:.86em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text);overflow-wrap:anywhere;}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5;max-width:100%;}
+pre code{background:none;padding:0;}
+blockquote{margin:12px 0;padding:8px 14px;border-left:3px solid var(--accent2);background:var(--bq);border-radius:0 6px 6px 0;color:var(--text2);}
+table{border-collapse:collapse;max-width:100%;margin:12px 0;font-size:13.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;color:var(--text);}
+th{background:var(--thbg);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.02em;}
+tr:nth-child(even) td{background:var(--theven);}
+ul,ol{padding-left:22px;margin:10px 0;}
+li{margin:5px 0;}
+hr{border:none;border-top:1px solid var(--border);margin:26px 0;}
+.toc{background:var(--tocbg);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin:0 0 24px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.toc::before{content:'CONTENTS';display:block;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent);margin-bottom:8px;}
+.toc ul{list-style:none;padding-left:0;margin:0;}
+.toc li{margin:3px 0;}
+.toc a,.toc-link{color:var(--text2);font-weight:600;font-size:14px;display:block;padding:6px 0;cursor:pointer;}
+.toc a:active,.toc-link:active{color:var(--accent2);}
+.toc-link{-webkit-tap-highlight-color:transparent;}
+#totop{position:fixed;right:16px;bottom:16px;z-index:30;background:var(--accent);color:#fff;border:none;border-radius:50%;width:46px;height:46px;font-size:18px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;display:flex;align-items:center;justify-content:center;}
+#totop.show{opacity:.92;pointer-events:auto;}
+@media (prefers-color-scheme: dark){#totop{color:#1a1a1a;}}
+</style></head>
+<body>
+<span id="top"></span>
+<header class="doc"><h1>Operations Manual — PIT + RBS</h1><span class="ver">v1.10</span></header>
+<div class="wrap">
+<h1 id="operations-manual-pit-rbs">Operations Manual — PIT + RBS</h1>
+<p><strong>Version:</strong> 1.10 · 16 Jul 2026 · §6z intel refresh-by-conversation
+<strong>Purpose:</strong> How the tools are fed, what every flag means, and who owns which number. If this document is wrong, the tools are being used on assumptions — and assumptions are what this whole project has been about eliminating.</p>
+<hr />
+<div class="toc">
+<ul>
+<li><span class="toc-link" data-target="0-the-one-rule-everything-else-follows">0. The one rule everything else follows</span></li>
+<li><span class="toc-link" data-target="1-data-workflows">1. Data workflows</span></li>
+<li><span class="toc-link" data-target="2-what-every-flag-means">2. What every flag means</span></li>
+<li><span class="toc-link" data-target="3-who-owns-which-number">3. Who owns which number</span></li>
+<li><span class="toc-link" data-target="4-known-gaps-and-cautions">4. Known gaps and cautions</span></li>
+<li><span class="toc-link" data-target="5-the-environment-hard-won-do-not-re-derive">5. The environment (hard-won, do not re-derive)</span></li>
+<li><span class="toc-link" data-target="6-update-requests-the-four-standing-workflows">6. Update requests — the four standing workflows</span></li>
+<li><span class="toc-link" data-target="7-merge-backlog-the-user-guide-tab">7. Merge backlog — the User Guide tab</span></li>
+<li><span class="toc-link" data-target="7b-merge-backlog-features-not-the-guide-tab">7b. Merge backlog — features (not the Guide tab)</span></li>
+<li><span class="toc-link" data-target="8-pit-reference-schema-stages-design-rules">8. PIT reference — schema, stages, design rules</span></li>
+<li><span class="toc-link" data-target="9-forecast-catalyst-timing-the-duration-model">9. Forecast catalyst timing — the duration model</span></li>
+<li><span class="toc-link" data-target="10-rbs-share-structure-normalized-comparison-ev-v216x">10. RBS share structure, normalized comparison &amp; EV (v2.16.x)</span></li>
+<li><span class="toc-link" data-target="11-timeline-lanes-catalyst-vs-risk-v2200">11. Timeline lanes — catalyst vs. risk (v2.20.0)</span></li>
+</ul>
+</div>
+<h2 id="0-the-one-rule-everything-else-follows">0. The one rule everything else follows</h2>
+<blockquote>
+<p><strong>The FILE is the source of truth. Storage is a working surface.</strong></p>
+</blockquote>
+<ul>
+<li><code>SEED_POSITIONS</code>, <code>PRICES</code>, <code>ATR</code>, <code>HIGH_WATER</code>, <code>INTEL_DATA</code> — all live <strong>in the artifact file</strong>. Durable, versioned, identical on every device.</li>
+<li>IndexedDB holds only <strong>what you type</strong> — entries, targets, staged sells, core locks, cash.</li>
+<li>Storage may be evicted, may be wiped, may be device-local. <strong>It is never allowed to be the only copy of anything that matters.</strong></li>
+</ul>
+<p><strong>Consequence:</strong> book facts (shares, avg cost, price, stop) are stripped from storage on every load. The file always wins on those. That is deliberate.</p>
+<hr />
+<h2 id="1-data-workflows">1. Data workflows</h2>
+<h3 id="11-mondaythursday-daily-prices">1.1 Monday–Thursday — daily prices</h3>
+<p><strong>You send:</strong> closing prices as a table.
+<strong>Claude updates:</strong> <code>PRICES</code> block in RBS + <code>INTEL_DATA.positions.prices</code> in PIT.
+<strong>Recomputed automatically:</strong> market values, allocation %, R:R, Chandelier stops, range position.
+<strong>Not recomputed:</strong> ATR, volume states, relative strength, 20-day range bounds. Those need the workbook.</p>
+<h3 id="12-friday-the-full-refresh">1.2 Friday — the full refresh</h3>
+<p><strong>You send:</strong> <code>Historic Volume and Price ... .xlsx</code> (the extended workbook).
+<strong>Claude updates:</strong>
+| Block | Source |
+|---|---|
+| <code>PRICES</code> | Close column, latest row |
+| <code>ATR</code> | Average True Range column |
+| <code>RANGE20</code> | 20-session high/low |
+| <code>VOL</code> (5-state) | Volume level + trend |
+| <code>RS</code> | vs GDXJ benchmark |
+| <code>HIGH_WATER</code> | New highs, if any ticker printed one |</p>
+<p><strong>This is the only day the derived layers move.</strong> Mid-week, they are stale by design — consistently stale, which is safe. Mixed-date data is not.</p>
+<h3 id="13-when-you-make-a-trade">1.3 When you make a trade</h3>
+<p><strong>You send:</strong> ticker, account, buy/sell, quantity, price.
+<strong>Claude updates BOTH tools:</strong>
+- RBS: <code>SEED_POSITIONS</code> shares/avgCost · <code>SEED_CASH</code> · clears executed staging
+- PIT: <code>INTEL_DATA.positions.lots</code> · <code>asOf</code> date</p>
+<p><strong>Expect an amber stale strip</strong> on that card afterward. That is correct — see §2.2.</p>
+<p><strong>Claude does NOT update <code>PRICES</code> to your fill price.</strong> One ticker marked to today while nine are marked to Friday gives a portfolio with mixed as-of dates. It corrects itself on the Friday refresh.</p>
+<h3 id="14-before-you-send-anything-export-first">1.4 Before you send anything — export first</h3>
+<ol>
+<li>Open RBS → scroll to bottom → <strong>GENERATE</strong></li>
+<li><strong>COPY</strong> → paste into chat alongside your prices/trades</li>
+<li>Claude bakes your typed state into the next build</li>
+</ol>
+<p><strong>Why:</strong> the values you typed live in IndexedDB, which Claude cannot see. Without the export, a rebuild would ship you a file that has forgotten your entries, targets, and staged sells.</p>
+<h3 id="15-after-every-rebuild">1.5 After every rebuild</h3>
+<p>Upload the new file to <strong>project knowledge</strong>. Otherwise the project copy goes stale and future chats work from an old version — the exact failure this project exists to prevent.</p>
+<hr />
+<h3 id="16-account-roles-the-structural-decision-14-jul-2026">1.6 Account roles — the structural decision (14 Jul 2026)</h3>
+<p>The two accounts are not interchangeable. They have different jobs.</p>
+<table>
+<thead>
+<tr>
+<th>Account</th>
+<th>Role</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RRSP</strong></td>
+<td><strong>Core account</strong></td>
+<td>High-conviction positions held through the thesis. Add on thesis-aligned dips. Sell <strong>only</strong> on thesis-change or genuine overweight — never out of fear of a further drop. Some swing trading allowed, but the core positions stay.</td>
+</tr>
+<tr>
+<td><strong>TFSA</strong></td>
+<td><strong>Swing account</strong></td>
+<td>Where catalyst-timed trades actually happen. Rotation, trims, re-buys, catalyst plays.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this matters for the tools:</strong> a "trim" recommendation on an RRSP core position and a "trim" on a TFSA swing mean two completely different things. The merged tool should eventually read account role, because position-blind advice can tell you to swing-trade a position that is deliberately core. Until then, <strong>you</strong> apply the filter: <em>is this RRSP-core? then the bar to sell is thesis-change, not price.</em></p>
+<blockquote>
+<p>This is a decision that was circled for weeks and landed on the 14 Jul drive. It belongs here because it changes how every recommendation should be read.</p>
+</blockquote>
+<hr />
+<h2 id="2-what-every-flag-means">2. What every flag means</h2>
+<h3 id="21-storage-badge-header-always-visible">2.1 Storage badge (header, always visible)</h3>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🟢 <code>STORAGE ON — no changes to save yet</code></td>
+<td>IndexedDB alive, nothing typed yet</td>
+<td>None</td>
+</tr>
+<tr>
+<td>🟢 <code>ALL CHANGES SAVED · 14:32</code></td>
+<td>Last successful write, with time</td>
+<td>None. The timestamp is the proof.</td>
+</tr>
+<tr>
+<td>🔴 <code>NOT SAVING — [reason]</code></td>
+<td>Writes are failing</td>
+<td><strong>Do not trust the session.</strong> Export what you can and reload.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Known:</strong> <code>window.storage</code> is dead on iOS. IndexedDB works on both. If the badge is red on desktop, something else is wrong.</p>
+<h3 id="22-amber-strip-book-changed-per-card">2.2 Amber strip — "Book changed" (per card)</h3>
+<p><strong>Means:</strong> shares or avg cost for this ticker changed since you typed the inputs on this card. Your numbers were reasoned against a position that no longer exists.</p>
+<p><strong>Fires when:</strong> a trade is applied, or new book data is baked in.</p>
+<p><strong>RE-ANCHOR resets:</strong> amount to add · sell qty · sell price · confirm boxes
+<strong>RE-ANCHOR keeps:</strong> entry · target · stop (price levels — thesis, not quantity) · <strong>core shares</strong> (your decision, only clamped if the new share count makes it impossible)</p>
+<blockquote>
+<p><strong>Decision logged 14 Jul 2026 — core = one field, clamped to shares held.</strong> The idea of letting core exceed shares held (as an <em>accumulation target</em> / floor to rebuild toward — e.g. "I want 100k RDU RRSP") was considered and <strong>rejected for now.</strong> Core stays a single field meaning <em>"of what I hold, this much is locked."</em> A target is a different concept (drives buys; core constrains sells) and would need its own field — not being built. The RRSP↔TFSA relocation that prompted it stays a decision made outside the tool. <em>Do not re-open without a new reason.</em>
+<strong>RE-ANCHOR never touches:</strong> shares · avg cost · price. Those come from the file.</p>
+</blockquote>
+<p><strong>No undo.</strong> It asks first and lists exactly what it will change.</p>
+<h3 id="23-red-strip-levels-dont-add-up-per-card">2.3 Red strip — "Levels don't add up" (per card)</h3>
+<p><strong>Means:</strong> arithmetic, not judgement. One of:
+- Target ≤ entry → reward is negative, R:R cannot compute
+- Stop ≥ entry → risk is negative, R:R cannot compute</p>
+<p><strong>The deeper reading (§2.3 of Trading Log):</strong> if the trailing stop sits above your intended add level, <strong>your stop fires before your entry is ever reached.</strong> The plan contradicts itself. This is not a display bug — it is the tool telling you the plan is incoherent.</p>
+<p><strong>It never flags a target for being ambitious.</strong> CANX at 71x triggers nothing. That is a judgement call and it is yours.</p>
+<h3 id="24-atr-review-badge">2.4 <code>ATR REVIEW</code> badge</h3>
+<p><strong>Means:</strong> price has fallen below the Chandelier trailing stop (high-water − 3 × ATR).</p>
+<p><strong>This is a REVIEW TRIGGER, NOT A SELL SIGNAL.</strong> Go and look at the catalysts, filings, and macro. The stop does not make the decision.</p>
+<h3 id="25-volume-states-5">2.5 Volume states (5)</h3>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SURGE</code></td>
+<td>Level high, trend rising</td>
+</tr>
+<tr>
+<td><code>BUILDING</code></td>
+<td>Level rising off a base</td>
+</tr>
+<tr>
+<td><code>FADING</code></td>
+<td>Level falling — <strong>liquidity leaving. You may not be able to exit later.</strong></td>
+</tr>
+<tr>
+<td><code>DORMANT</code></td>
+<td>Almost no volume</td>
+</tr>
+<tr>
+<td><code>NORMAL</code></td>
+<td>Nothing to see</td>
+</tr>
+</tbody>
+</table>
+<p><strong>FADING is the one that costs money.</strong> It is not about price — it is about whether the exit door is still open.</p>
+<h3 id="26-20-day-range-bar-under-entry">2.6 20-day range bar (under Entry)</h3>
+<p>Shows where price sits between its 20-session low and high.
+- <strong>Amber ≥80%</strong> — upper end of range
+- <strong>Blue ≤20%</strong> — lower end
+- Grey — middle</p>
+<p><strong>This is a question generator, not a signal.</strong> "Low = good, high = bad" is the mean-reversion read and it is <strong>wrong for a catalyst-driven trader.</strong> The question is: <em>does the range position agree or disagree with what the catalyst timeline says should be happening right now?</em></p>
+<h3 id="27-derived-fields-greyed-dashed-border">2.7 Derived fields (greyed, dashed border)</h3>
+<p><strong>Stop</strong> is computed live from ATR + high-water on every load. It cannot be typed into. A manual stop would be silently overwritten on the next load — worse than not being able to type one at all.</p>
+<p><strong>If you disagree with a stop, the fix is the high-water anchor or the ATR, not the field.</strong></p>
+<hr />
+<h2 id="3-who-owns-which-number">3. Who owns which number</h2>
+<table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Owner</th>
+<th>Changes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shares, avg cost</td>
+<td><strong>The file</strong></td>
+<td>A trade is applied</td>
+</tr>
+<tr>
+<td>Price</td>
+<td><strong>The file</strong></td>
+<td>Daily/Friday price update</td>
+</tr>
+<tr>
+<td>ATR, RANGE20, volume, RS</td>
+<td><strong>The file</strong></td>
+<td>Friday workbook refresh</td>
+</tr>
+<tr>
+<td>High-water anchor</td>
+<td><strong>The file</strong></td>
+<td>A new high prints</td>
+</tr>
+<tr>
+<td><strong>Stop</strong></td>
+<td><strong>Derived</strong> — computed, never stored</td>
+<td>Any of the above</td>
+</tr>
+<tr>
+<td>Entry, target</td>
+<td><strong>You</strong> (IndexedDB)</td>
+<td>You type it</td>
+</tr>
+<tr>
+<td>Staged sells, amount to add</td>
+<td><strong>You</strong> (IndexedDB)</td>
+<td>You stage it</td>
+</tr>
+<tr>
+<td>Cash</td>
+<td><strong>The file</strong>, seeded from trades</td>
+<td>A trade is applied</td>
+</tr>
+</tbody>
+</table>
+<p><strong>If a number is in the wrong column, that is a bug.</strong> The stop field pretending to be editable was exactly this, and it was fixed.</p>
+<hr />
+<h2 id="4-known-gaps-and-cautions">4. Known gaps and cautions</h2>
+<ul>
+<li><strong>RDU + RAK pre-2026 transaction history is missing.</strong> Share reconciliation goes negative. Last-buy dates are used as an approximation. <strong>RAK's high-water anchor ($0.190, 12 Mar) rests on this incomplete data</strong> — the stop is arithmetically right but the anchor may not be.</li>
+<li><strong>CRCL high-water is $0.140 but the stock traded at $0.150 on 14 Jul.</strong> Anchor needs updating. <em>(open)</em></li>
+<li><strong>Full 2025 transaction history</strong> would unlock realized P&amp;L and "since last flat" high-water anchoring.</li>
+<li><strong>Storage is device-local.</strong> Phone and desktop each hold their own IndexedDB. They do <strong>not</strong> sync. The export→bake cycle is what keeps them aligned. MCP sync was considered and <strong>deliberately rejected</strong> — it solves a problem that does not exist at current usage.</li>
+<li><strong>Throwaway/test builds must use a different DB name.</strong> A test build once wrote a fake book stamp into the production database. Any experimental build should be treated as radioactive until proven otherwise — check the version badge before tapping anything.</li>
+<li><strong>RBS New Book scenario buys at ENTRY when entry is set</strong> (v2.13.4), falling back to market price when entry is 0. So the "shares this buys" and blended avg cost model a fill at your planned entry, not at the current quote. The row is tagged <code>(entry)</code> or <code>(mkt)</code> so it's explicit. R:R in the scenario is computed from the same buy price.</li>
+</ul>
+<hr />
+<h2 id="5-the-environment-hard-won-do-not-re-derive">5. The environment (hard-won, do not re-derive)</h2>
+<p>Four browser APIs fail <strong>silently</strong> inside the Claude artifact sandbox. All four were assumed to work and none did:</p>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>localStorage</code> / <code>sessionStorage</code></td>
+<td><strong>Banned</strong> everywhere</td>
+</tr>
+<tr>
+<td><code>window.storage</code></td>
+<td><strong>Works on desktop. Dead on iOS</strong> — every verb returns "Invalid response format"</td>
+</tr>
+<tr>
+<td><code>navigator.clipboard</code></td>
+<td><strong>Blocked</strong> — throws where nothing is listening</td>
+</tr>
+<tr>
+<td><code>confirm()</code> / <code>prompt()</code></td>
+<td><strong>Blocked</strong> — returns nothing at all, so a button just appears dead</td>
+</tr>
+</tbody>
+</table>
+<p><strong>IndexedDB works.</strong> Tested on iOS: survives session close, artifact reopen, <strong>and new artifact versions.</strong> It is the transport.</p>
+<p><strong>The rule that came out of this:</strong> <em>test the platform, do not infer it.</em> Every one of the four above failed quietly, and quiet failure is indistinguishable from success right up until it costs you.</p>
+<hr />
+<h2 id="6-update-requests-the-four-standing-workflows">6. Update requests — the four standing workflows</h2>
+<h3 id="6z-summary-intelligence-refresh-refresh-by-conversation-there-is-no-button">6z. Summary Intelligence refresh — refresh-by-conversation (there is NO button)</h3>
+<p>The Summary Intelligence card (Macro Context, Insider Moves &amp; Alpha, Ranked Trade Opportunities, Scenario Matrix) is a <strong>baked research snapshot</strong> in <code>INTEL_DATA</code>. It does <strong>not</strong> auto-update when a ticker is added, and <strong>it cannot</strong> — insider transactions, macro copper/gold context, and alpha theses are not in the filings, and PIT's sandbox has no network. There is <strong>no import box and no export button in PIT</strong> (both were removed; export/import lives in RBS for user state only).</p>
+<p><strong>The only way to refresh it is to ask Claude in chat.</strong> Workflow: you say "refresh the intel" → Claude runs the research pass (SEDI/insider filings, macro, per-name alpha) → compiles fresh <code>INTEL_DATA</code> for review → bakes it in directly (same two-message pattern as a ticker add). <strong>Trigger:</strong> the red coverage banner on the Summary card ("covers N of M tickers · missing: …") and the per-section dates. When the banner is red or the dates are aging, ask for a refresh. Adding a ticker and refreshing intel are <strong>decoupled</strong> — add fast (mechanical), refresh intel later (research). The banner keeps them honestly linked so neither drifts silently.</p>
+<h3 id="6a-pit-update-types-direct-apply-no-confirmation-step">6a. PIT update types (direct apply — no confirmation step)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>#1</strong></td>
+<td>Event / record updates</td>
+</tr>
+<tr>
+<td><strong>#2</strong></td>
+<td>Schema / profile data restructures</td>
+</tr>
+<tr>
+<td><strong>#3</strong></td>
+<td><strong>Filings diff</strong> — upload the new batch; Claude reports only what CHANGED</td>
+</tr>
+</tbody>
+</table>
+<h3 id="6b-portfolio-data-workflows">6b. Portfolio data workflows</h3>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Trigger</th>
+<th>Who initiates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trade applied</strong> — report buy/sell, Claude updates PIT + RBS</td>
+<td>Whenever a trade fills</td>
+<td><strong>You</strong></td>
+</tr>
+<tr>
+<td><strong>Price &amp; volume refresh</strong> — upload <code>Historic Volume and Price</code> workbook</td>
+<td>Weekly (Friday), or as needed</td>
+<td><strong>You</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="on-request-3-why-it-cannot-be-automatic">On Request 3 — why it cannot be automatic</h3>
+<p><strong>Claude has no SEDAR access.</strong> Every filing in project knowledge is there because you uploaded it. There is no path by which a new MD&amp;A reaches the tools on its own.</p>
+<p><strong>The consequence, stated plainly:</strong> if a filing drops and you do not upload it, PIT's Filings Intelligence keeps showing the old picture — <strong>and it will look completely current.</strong> Nothing will indicate otherwise. This is the same failure mode as every other bug in this project: wrong data that does not announce itself.</p>
+<p><strong>What the diff should report</strong> (the delta, not a re-read):
+- New warrants issued · warrant overhang change
+- Runway shift (quarters of cash remaining)
+- Going-concern language appearing <em>or disappearing</em>
+- New debt
+- Dilution since last filing
+- Any change to project ownership / lease vs. title
+- <strong>Corporate obligations lane — re-parse the commitments note (see §11).</strong> This is the one that silently drifts, so it is a <em>required</em> step of every filing diff, not an optional extra.</p>
+<p><strong>Trigger: CALENDAR — every 90 days.</strong> Decided 14 Jul 2026.</p>
+<p>Chosen over event-based deliberately: event-based relies on you <em>noticing</em> a filing hit, and "you have to remember" is exactly the failure mode this project keeps engineering out. A 90-day clock fires whether or not you were watching.</p>
+<p><strong>First clock starts from the filing dates already in project knowledge</strong> (interim/annual filings dated Mar–Jun 2026). The Guide tab computes days-since per ticker and raises a red dot past ~100 days — a 10-day grace so the flag means <em>"go look"</em>, not <em>"you're late"</em>.</p>
+<p><strong>This does not stop you filing early.</strong> If you see one hit, upload it — the clock is a floor, not a ceiling.</p>
+<hr />
+<h2 id="7-merge-backlog-the-user-guide-tab">7. Merge backlog — the User Guide tab</h2>
+<p><strong>Agreed 14 Jul 2026.</strong> On the PIT+RBS merge, this manual stops being a document and becomes a <strong>tab</strong> — one that reads the live state and surfaces what needs doing.</p>
+<h3 id="the-dot-grammar">The dot grammar</h3>
+<table>
+<thead>
+<tr>
+<th>Dot</th>
+<th>Meaning</th>
+<th>Demands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🔴 <strong>red</strong> on the Guide tab</td>
+<td>Something needs a decision or an input from you</td>
+<td><strong>ACTION</strong></td>
+</tr>
+<tr>
+<td>🟠 <strong>orange</strong> on any other tab</td>
+<td>New information has landed</td>
+<td><strong>ATTENTION</strong></td>
+</tr>
+<tr>
+<td>none</td>
+<td>Nothing has changed</td>
+<td>Nothing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The distinction is: <em>do something</em> vs <em>look at something</em>.</strong> That makes the Guide tab a triage queue that happens to explain itself, rather than documentation nobody opens.</p>
+<h3 id="what-raises-a-red-dot">What raises a red dot</h3>
+<p><strong>This list is the seed, not the ceiling. It grows as the tools grow.</strong> Every new class of "something the user has to remember" belongs here.</p>
+<table>
+<thead>
+<tr>
+<th>Trigger</th>
+<th>Condition</th>
+<th>Action it demands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Filings stale</strong></td>
+<td>&gt;100 days since last filing read, per ticker (90-day clock + 10-day grace)</td>
+<td>Upload the new batch → Request 3</td>
+</tr>
+<tr>
+<td><strong>Book changed, card not re-anchored</strong></td>
+<td><code>bookStamp</code> mismatch outstanding</td>
+<td>Review the card, re-anchor</td>
+</tr>
+<tr>
+<td><strong>Incoherent levels</strong></td>
+<td>Target ≤ entry, or stop ≥ entry</td>
+<td>Fix the plan — it contradicts itself</td>
+</tr>
+<tr>
+<td><strong>Stale high-water anchor</strong></td>
+<td>Price has printed above the stored high-water</td>
+<td>Anchor needs updating; the stop is understated</td>
+</tr>
+<tr>
+<td><strong>Friday refresh missed</strong></td>
+<td>No workbook update this week</td>
+<td>Upload the workbook → Request 2</td>
+</tr>
+<tr>
+<td><strong>Storage failing</strong></td>
+<td>Badge red</td>
+<td>Do not trust the session</td>
+</tr>
+<tr>
+<td><strong>WIP marker stale</strong></td>
+<td>A stage in <code>stagesWip</code> (orange dot) or a <code>permittingType</code> still set past the event's expected resolution — e.g. CGNT PEA past Q4 2026, or a drill permit granted but dot not cleared</td>
+<td>Clear the flag; log the resolving milestone. <strong>Manual for now</strong> — the tool cannot yet know the study published or the permit was granted until a filing/news says so.</td>
+</tr>
+<tr>
+<td><strong>TBD catalyst un-estimated</strong></td>
+<td>A forward catalyst with neither <code>date</code> nor <code>estDate</code> — invisible on the Gantt, absent from triage-bucket math</td>
+<td>Give it an anchored estimate (see §9 duration model) or confirm it is genuinely un-anchorable. <strong>Manual for now.</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Currently outstanding:</strong> ANDC + RAK incoherent levels · CRCL anchor ($0.140 vs $0.150 traded) · RDU + RAK anchors resting on incomplete pre-2026 history · <strong>CGNT PEA WIP dot (clears when the PEA publishes)</strong> · <strong>Jonco drill-permit dot + 12 RDU TBD catalysts un-estimated (see §9)</strong>.</p>
+<p><strong>Every one of these is currently something you have to remember.</strong> That is the thing being fixed. The manual's own warning — <em>"a manual that is out of date is worse than none"</em> — applies to itself, and a tab that computes its state at render cannot go stale.</p>
+<p><strong>Design principle carried over:</strong> computed-at-render, never stored flags.</p>
+<hr />
+<h2 id="7b-merge-backlog-features-not-the-guide-tab">7b. Merge backlog — features (not the Guide tab)</h2>
+<p><strong>Logged 14 Jul 2026.</strong> Distinct from the Guide-tab work above — these are new data/display capabilities for the merged tool.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Comparables card (per ticker)</strong></td>
+<td>A card on each ticker tab showing peer comps. First concrete case: RAK's Lentung tungsten pivot vs Almonty (TSX:AII, Sangdong), Tungsten West (ASX:TW1, Hemerdon), and the mothballed Cantung mine. Generalises to a comps card for every ticker.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Share structure + normalized share count</strong></td>
+<td>Per ticker: basic shares, options, warrants, fully-diluted. <strong>Normalized share count</strong> = a like-for-like count so market caps compare cleanly across the basket (fully-diluted, or ITM-diluted). Feeds the Balance Sheet League Table and any comps.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Company lifecycle class — Explorer / Developer / Producer</strong></td>
+<td>✅ <strong>Built v2.15.0.</strong> Header pill beside the exchange badge, computed from project stages, never stored. See below.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>RBS reads PIT's add recommendation</strong></td>
+<td>On the New Book scenario, beside AMOUNT TO ADD: if PIT's framework says don't add, show a <code>PIT: DON'T ADD</code> pill. Requires the merged tool to expose PIT's per-ticker recommendation to RBS. Logged 15 Jul 2026.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Per-card expand/collapse state, persisted</strong></td>
+<td>Give every PIT ticker card an e/c toggle; remember open/closed in IndexedDB and include it in the export so it bakes into the file. <strong>Blocked on PIT's IndexedDB swap</strong> (PIT still uses session-only <code>window.storage</code>; RBS already has the transport). Logged 15 Jul 2026.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="on-feature-3-the-classification-layer-built-v2150">On feature 3 — the classification layer (✅ BUILT v2.15.0)</h3>
+<p>The 11-stage pipeline (§8.3) is <strong>per project.</strong> A company holds several projects at different stages. The Explorer/Developer/Producer band is a <strong>company-level roll-up</strong> — <em>derived from the furthest-advanced project</em>, never hand-set (or it goes stale the moment a project advances).</p>
+<p><strong>Mapping as built:</strong>
+| Band | Rolls up from |
+|---|---|
+| <strong>Explorer</strong> | TARGET · DRILLING · ASSAYS · MRE — <em>and</em> standalone PERMITTING/CONSTRUCTION with <strong>no</strong> economic study (= drill permits) |
+| <strong>Developer</strong> | An economic study exists: PEA · PFS · FS (permitting/construction only elevate <strong>with</strong> a study) |
+| <strong>Producer</strong> | PRODUCTION |
+| <em>(DORMANT ignored for banding — orthogonal)</em> |</p>
+<p><strong>The decided seam:</strong> the Explorer→Developer line is the <strong>first economic study (PEA).</strong> The critical clause — <em>permitting/construction without a study stays Explorer</em> — is what keeps <strong>CANX</strong> (Arizona drill permits, no NI 43-101 resource) an Explorer instead of a mis-banded Developer. Confirmed against data 14 Jul 2026.</p>
+<p><strong>In-progress studies — the orange WIP dot:</strong> a stage underway but not yet published (e.g. CGNT's PEA, targeted Q4 2026) carries an <strong>orange dot on the top-right of its stage pill</strong>, and the same dot rides on the <strong>DEVELOPER header pill</strong> when the band qualifies <em>only</em> through an in-progress study. The band flips to DEVELOPER while the pill still tells the truth — the study isn't published. A published study at the same level clears the dot. Schema: <code>profile.stagesWip: []</code> — a subset of <code>stages</code>, orthogonal (<code>isMilestone</code> pattern), additive; absent means nothing in progress.</p>
+<p><strong>Prospect generator = a flag, not a band.</strong> Business model, orthogonal to lifecycle. Stored as <code>"isProspectGenerator": true</code> on the ticker object; renders as a <code>PROSPECT GEN</code> pill. Set on <strong>RDU</strong> (Radius Gold — the archetype). Royalty/Streamer: none in the basket, not built.</p>
+<p><strong>Drill vs mine permitting — the flag (v2.15.1).</strong> The <code>permitting</code> stage is ambiguous: a drill permit is an <em>explorer</em> signal, a mine permit is a <em>developer</em> signal. Schema: <code>profile.permittingType: "drill" | "mine"</code>. When an active permitting pill has a type set, it renders the label suffix <code>(DRILL)</code> or <code>(MINE)</code> plus an <strong>orange flag</strong> on the top-right. This makes the pill self-explaining and reinforces the banding rule — a drill permit with no economic study stays Explorer. Set on <strong>CANX</strong> (<code>drill</code> — Arizona BLM drill permits). Absent = plain <code>PERMITTING</code> pill, no flag.</p>
+<p><strong>Current basket:</strong> 9 Explorers · 1 Developer (CGNT, WIP) · 0 Producers · RDU flagged PROSPECT GEN · CANX permitting typed DRILL.</p>
+<hr />
+<h2 id="8-pit-reference-schema-stages-design-rules">8. PIT reference — schema, stages, design rules</h2>
+<h3 id="81-record-schema">8.1 Record schema</h3>
+<p><strong>Authored fields:</strong> <code>n · symbol · project · title · category · confidence · date · estDate · sourceType · link · notes</code></p>
+<p><strong>Boolean weights</strong> — orthogonal; one record can carry several:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Icon</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isMilestone</code></td>
+<td>★</td>
+<td>milestone event</td>
+</tr>
+<tr>
+<td><code>obligation</code></td>
+<td>$</td>
+<td>cash the company must pay out</td>
+</tr>
+<tr>
+<td><code>risk</code></td>
+<td>!</td>
+<td>adverse development</td>
+</tr>
+<tr>
+<td><code>warrant</code></td>
+<td>W</td>
+<td>warrant expiry tranche <code>{shares, strike}</code></td>
+</tr>
+<tr>
+<td><code>isNew</code></td>
+<td></td>
+<td>newly added record</td>
+</tr>
+<tr>
+<td><code>loggedAt</code></td>
+<td></td>
+<td>date Claude added it (separate from <code>date</code>/<code>estDate</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>5 categories only:</strong> <code>News · Forecasted Catalyst · Employee · Event · Research</code></p>
+<blockquote>
+<p><strong>CORE PRINCIPLE:</strong> Milestone-ness is a <strong>WEIGHT, not a category.</strong> Same for obligation / risk / warrant. This is why they survive lifecycle changes — a forecast obligation stays an obligation after it is paid; a milestone stays a milestone after it happens.</p>
+</blockquote>
+<h3 id="82-computed-at-render-never-stored">8.2 Computed at render — never stored</h3>
+<p><strong>The single most important rule in the build.</strong> Every item below was once a stored flag that went stale and produced a bug.</p>
+<table>
+<thead>
+<tr>
+<th>Computed</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>visualState</code></td>
+<td>past / future / milestone / media / result ← category + dates</td>
+</tr>
+<tr>
+<td><code>recOverdue</code></td>
+<td><code>estDate &lt; today &amp;&amp; !date</code></td>
+</tr>
+<tr>
+<td><code>isFreshNew</code></td>
+<td><code>isNew &amp;&amp; loggedAt within 14 days</code> (auto-expires, no button)</td>
+</tr>
+<tr>
+<td><code>moneyness</code></td>
+<td>live quote vs warrant strike → ITM / OTM</td>
+</tr>
+<tr>
+<td>freshness badge</td>
+<td>days since last CONFIRMED date; stale &gt;14d; future dates ignored</td>
+</tr>
+<tr>
+<td>triage buckets</td>
+<td>≤45d Active / 46–90d Watching / else Hold</td>
+</tr>
+<tr>
+<td>Gantt horizon</td>
+<td><code>futureMonths</code> is a FLOOR, not a ceiling — auto-extends</td>
+</tr>
+</tbody>
+</table>
+<p><code>NEW_WINDOW_DAYS = 14</code> · <code>STALE_DAYS = 14</code></p>
+<p><strong>This is the same principle that drives the User Guide tab (§7).</strong> A flag computed at render cannot go stale. A stored one always can.</p>
+<h3 id="83-stage-pipeline-11-stages-multi-flag">8.3 Stage pipeline — 11 stages, MULTI-FLAG</h3>
+<p>A project carries <strong>every</strong> stage currently true (e.g. Mocoa = MRE + DRILLING + PEA):</p>
+<pre><code>TARGET → DRILLING → ASSAYS → MRE → PEA → PFS → FS
+       → PERMITTING → CONSTRUCTION → PRODUCTION → DORMANT
+</code></pre>
+<blockquote>
+<p><strong>NI 43-101 is deliberately NOT a stage.</strong> It is the reporting <em>standard</em> governing MRE/PEA/PFS/FS disclosure, not a step in the pipeline.</p>
+</blockquote>
+<h3 id="84-going-concern-levels">8.4 Going-concern levels</h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Badge</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>funded</code></td>
+<td>✓ green</td>
+<td>filing states program is fully funded</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>✓ green</td>
+<td>no going-concern qualification</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td>⚠ orange</td>
+<td>note-level disclosure</td>
+</tr>
+<tr>
+<td><code>auditor</code></td>
+<td>⚠⚠ red</td>
+<td>flagged in the audit opinion itself</td>
+</tr>
+</tbody>
+</table>
+<h3 id="85-design-rules">8.5 Design rules</h3>
+<ul>
+<li><strong>Colour means STATUS</strong> (teal = confirmed, rose = risk/overdue, amber = new, navy = warrant). Never spend colour on chrome like open/closed state.</li>
+<li><strong>Icons for FACTS; interpretation in the TEXT.</strong> <code>$</code> and <code>!</code> work because nobody has to agree with a judgement call about whether an obligation exists. <strong>A "good news / bad news" icon would launder opinion as data.</strong></li>
+<li><strong>Confidence badges are non-negotiable:</strong> <code>SOURCED</code> (found via live search) · <code>SYNTHESIZED</code> (Claude's interpretation of sourced data) · <code>SPECULATIVE</code> (forecast with material uncertainty)</li>
+<li><strong>Section IDs on every card</strong> (<code>SUM:macro-context</code>, <code>ANDC:filings-intelligence</code>) so issues can be referenced precisely.</li>
+<li>Recommendations are labelled <strong>FRAMEWORK, NOT A DIRECTIVE</strong> — something to argue with, not follow.</li>
+</ul>
+<h3 id="86-structural-rules">8.6 Structural rules</h3>
+<ul>
+<li>Two durable data blocks: <code>BEGIN_TICKER_DATA</code>/<code>END_TICKER_DATA</code> and <code>BEGIN_INTEL_DATA</code>/<code>END_INTEL_DATA</code></li>
+<li><strong>The version const must live OUTSIDE the markers</strong> — a migration script ate it once.</li>
+<li><strong>Artifact-only environment:</strong> in-artifact API calls do not work (proxy rejects web_search responses; CORS blocks external hosting). <strong>All research runs through chat, then gets baked into the file.</strong></li>
+</ul>
+<h3 id="87-windowstorage-session-scratchpad-superseded-14-jul-2026">8.7 ~~<code>window.storage</code> = session scratchpad~~ — SUPERSEDED 14 Jul 2026</h3>
+<p>~~PIT's reference doc stated <code>window.storage</code> was a session scratchpad.~~</p>
+<p><strong>Corrected:</strong> <code>window.storage</code> is <strong>dead on iOS</strong> — every verb returns "Invalid response format." It only works on desktop. <strong>IndexedDB is the transport</strong> (see §5). The rest of the claim holds and is now the governing rule: <strong>baked-in file data is the sole source of truth.</strong></p>
+<h3 id="88-tab-structure">8.8 Tab structure</h3>
+<p><strong>Summary tab:</strong> Position Intelligence → Portfolio Intelligence → Balance Sheet League Table → Summary Intelligence (Macro · Insider+Alpha · Ranked · Scenarios · Trade Tickets &amp; Action Triage) → Upcoming Events</p>
+<p><strong>Ticker tabs:</strong> Timeline Legend (collapsed) → project cards (profile + Gantt + events) → Additional Projects → Filings Intelligence → Full Dataset Schema View (collapsed)</p>
+<hr />
+<p><em>Update this document whenever a workflow changes. A manual that is out of date is worse than none — it makes wrong behaviour look sanctioned.</em></p>
+<hr />
+<h2 id="9-forecast-catalyst-timing-the-duration-model">9. Forecast catalyst timing — the duration model</h2>
+<p><strong>Origin:</strong> the original vision (build-chat, project inception) was that forward catalysts get an <em>estimated</em> landing date so they position on the Gantt and feed the triage-bucket math, even when the company gives no date — "it's all speculation, but the view gives a real-time picture." This is that estimating made explicit instead of ad-hoc.</p>
+<p><strong>Where it stands (audited 15 Jul 2026):</strong> 81 of 98 forward catalysts carry an <code>estDate</code> and sit on the Gantt. 17 are pure TBD (no <code>estDate</code>) — <strong>12 of them RDU</strong> (Jonco permit chain, Amalia, Holly, Tierra Roja option payments). So the approach is followed ~83%, but was never systematic: each estimate was a one-off judgement, and messy projects (Jonco) defaulted to TBD instead of an estimate.</p>
+<h3 id="91-the-rule">9.1 The rule</h3>
+<p>A forward catalyst's <code>estDate</code> = <strong>anchor event date + typical duration for that event type in that jurisdiction.</strong> The estimate is always <code>confidence: Speculative</code> (renders amber with a <code>*</code> on the Gantt, and as <code>Est. &lt;date&gt;*</code> in the list) so it never masquerades as a company-confirmed date.</p>
+<h3 id="92-typical-durations-planning-estimates-not-authoritative">9.2 Typical durations — planning estimates, NOT authoritative</h3>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Canada (BC/Yukon)</th>
+<th>Peru / LatAm</th>
+<th>Other</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Assay turnaround (core → results)</td>
+<td>~4–8 wks</td>
+<td>~8–12 wks</td>
+<td>Namibia ~8–12 wks</td>
+</tr>
+<tr>
+<td>Exploration/drill permit</td>
+<td>NoW ~4–12 wks</td>
+<td>FTA→CIRA→GREM chain ~6–18 mo</td>
+<td>AZ BLM Notice ~2–8 wks</td>
+</tr>
+<tr>
+<td>Drill start after permit granted</td>
+<td>~2–6 wks (mobilization)</td>
+<td>~3–8 wks</td>
+<td>—</td>
+</tr>
+<tr>
+<td>MRE after campaign completes</td>
+<td>~3–6 mo</td>
+<td>~3–6 mo</td>
+<td>—</td>
+</tr>
+<tr>
+<td>PEA after MRE</td>
+<td>~6–12 mo</td>
+<td>~6–12 mo</td>
+<td>—</td>
+</tr>
+<tr>
+<td>PFS after PEA</td>
+<td>~12–18 mo</td>
+<td>~12–18 mo</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="93-the-anchoring-problem-why-12-rdu-catalysts-are-still-tbd">9.3 The anchoring problem (why 12 RDU catalysts are still TBD)</h3>
+<p>An estimate can only be pinned if its <strong>anchor has a date.</strong> Jonco's chain — community access → environmental → MEM auth → <em>permits granted</em> → earn-in clock → drill start → assays — is anchored to the permit approvals, which have <strong>no filed date.</strong> You cannot pin a chain to nothing.</p>
+<p><strong>So there is a genuine choice for un-anchored chains, and it is the user's call:</strong>
+- <strong>(a) Floating estimate</strong> — anchor to <code>today + typical duration</code>, re-based each refresh. ✅ <strong>CHOSEN &amp; BUILT v2.17.0.</strong>
+- <strong>(b) Leave TBD</strong> — kept only for genuinely <em>indefinite</em> events (a stalled JV with no trigger and no typical duration).</p>
+<h3 id="94-floating-estimates-as-built-v2170">9.4 Floating estimates — as built (v2.17.0)</h3>
+<p>Schema: <code>floating: true</code> + <code>floatDays: N</code> on the catalyst (orthogonal, <code>isMilestone</code> pattern). <code>estDate</code> is <strong>computed at load</strong> = today + floatDays, so it re-bases every time the file opens and never goes stale. A floating estimate is never "overdue" (its date is always in the near future).</p>
+<p><strong>Visual — calm and distinct, deliberately NOT the red overdue treatment:</strong>
+- Gantt marker: <strong>slate, dotted</strong> border (vs amber-dashed for anchored estimates, vs rose-dashed for overdue).
+- Gantt date label: slate italic, prefixed <strong><code>≈</code></strong> (not the amber <code>*</code>).
+- List: <strong><code>≈ Est. &lt;date&gt;</code></strong> in slate + a small dotted <strong><code>FLOATING</code></strong> tag.
+- Tooltip everywhere: <em>"no confirmed anchor — slides each refresh."</em></p>
+<p><strong>Applied to:</strong> the 6-step Jonco permit chain (community access → environmental → MEM auth → permits granted → clock → drill start), floatDays 90–300.</p>
+<p><strong>Still pure TBD (deliberately):</strong> Amalia JV reactivation / resource / Palmillas payment, Holly JV review — <em>indefinitely deferred, no typical duration to float against.</em> Tierra Roja GREM auth + option-payment start — <strong>pending your call</strong> on floatDays.</p>
+<p><strong>The re-basing caveat (know this):</strong> a floating date that never gets closer is the signal that real news hasn't landed. If a floating catalyst has been sliding for months, that itself is information — it belongs on the Guide-tab watch list, not as a date you trust.</p>
+<h2 id="10-rbs-share-structure-normalized-comparison-ev-v216x">10. RBS share structure, normalized comparison &amp; EV (v2.16.x)</h2>
+<p><strong>What it's for:</strong> junior miners have wildly different share counts, so raw share <em>price</em> tells you nothing about <em>size</em>. A $0.10 stock with 500M shares is bigger than a $0.50 stock with 50M. This feature re-prices every ticker to one common share count so price becomes a clean size comparison, then strips out cash to compare on enterprise value.</p>
+<h3 id="101-the-one-input-header">10.1 The one input — header</h3>
+<p><strong>"Normalized Share Count"</strong> field in the header (default <strong>271,547,000</strong> — your baseline; edit it and every card recomputes). Call it <strong>N</strong>. It's just a common yardstick; the exact number doesn't matter, only that it's the same for all tickers. Saved in IndexedDB.</p>
+<h3 id="102-the-per-card-strip-how-to-read-each-number">10.2 The per-card strip — how to read each number</h3>
+<p>Each ticker card shows a purple strip:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Formula</th>
+<th>How to read it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Norm Price</strong></td>
+<td>(price x issued shares) / N</td>
+<td>"What this stock would trade at if it had N shares." Because N is constant, <strong>this is a pure market-cap ranking</strong> — higher Norm Price = bigger company. Compare it across cards.</td>
+</tr>
+<tr>
+<td><strong>EV-adj</strong> (under Norm Price)</td>
+<td>(market cap - cash) / N</td>
+<td>Same idea, cash removed. The <strong>cash-adjusted size</strong> — the sharper number for developers sitting on a treasury.</td>
+</tr>
+<tr>
+<td><strong>Ratio vs Norm</strong></td>
+<td>issued shares / N</td>
+<td>How lean or bloated the cap table is vs your baseline. <strong>&lt; 1 = fewer shares than N</strong> (leaner); <strong>&gt; 1 = more.</strong> A low ratio means any re-rate moves the price harder (fewer shares to spread it over); a high ratio dilutes the move.</td>
+</tr>
+<tr>
+<td><strong>Issued Shares</strong></td>
+<td>from filings</td>
+<td>Basic issued &amp; outstanding (not fully-diluted — see 10.4). The <strong>% cash</strong> sub-line is cash / market cap.</td>
+</tr>
+<tr>
+<td><strong>Footer</strong></td>
+<td>—</td>
+<td><strong>Mkt cap . Cash . EV</strong>, in dollars. EV = market cap - cash.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="103-worked-example-rdu">10.3 Worked example — RDU</h3>
+<p>Price $0.16 . 115.7M shares . N = 271.547M . cash $1.4M
+- Norm Price = 0.16 x 115.7M / 271.547M = <strong>$0.068</strong>
+- Ratio = 115.7M / 271.547M = <strong>0.43x</strong> (leaner than baseline)
+- Mkt cap = <strong>$18.5M</strong>, EV = 18.5 - 1.4 = <strong>$17.1M</strong></p>
+<h3 id="104-what-to-remember-the-caveats">10.4 What to remember (the caveats)</h3>
+<ul>
+<li><strong>Basic shares, not fully-diluted.</strong> The normalization uses issued &amp; outstanding (matches your Excel). Warrant/option overhang is <em>not</em> in this number — read it alongside PIT's warrant-overhang flags, which is where dilution risk lives.</li>
+<li><strong>Cash is as-of each filing's date</strong> (e.g. RDU Dec 31, FEO Mar 31), so a name that has since burned or raised will have drifted. CASH refreshes on the <strong>quarterly filings diff</strong> (S6, Request 3 / #3), <em>not</em> the Friday price refresh.</li>
+<li><strong>EV is the developer's number.</strong> For explorers with tiny treasuries, EV is about market cap and the distinction barely matters. For a funded developer (FEO 31% cash, KFR 21%, RAK 45%), EV can reorder the basket vs raw market cap — that's the whole point of showing it.</li>
+<li><strong>Norm Price is a <em>comparison</em> tool, not a valuation.</strong> It says nothing about whether a company is cheap — only how it ranks by size against the others. Cheap/expensive is the thesis + catalyst + balance-sheet work, not this strip.</li>
+</ul>
+<h3 id="105-updating-the-data">10.5 Updating the data</h3>
+<p>Share counts and cash are <strong>baked from filings</strong>, one value per ticker (<code>SHARES</code> and <code>CASH</code> blocks in RBS). On a financing or a new quarterly filing, they change — hand them over in the filings diff and they get re-baked, same as any other filing-sourced number.</p>
+<h3 id="106-burn-rate-runway-the-dilution-timing-forecast-v2170">10.6 Burn rate &amp; runway — the dilution-timing forecast (v2.17.0)</h3>
+<p><strong>What it's for:</strong> runway = how many months until a company runs out of cash and <em>must raise</em>. A financing you see coming is a buying discipline (wait for it); a surprise raise tanks your entry. This turns the balance sheet into a <strong>raise-timing map.</strong></p>
+<p><strong>The line on each card:</strong> <code>Burn ~$X/mo · Runway ~Y · cash-out ~MMM 'YY</code>, colour-coded — <strong>red &lt; 6 mo, amber 6–12, green &gt; 12.</strong></p>
+<p><strong>How burn is defined:</strong> monthly cash consumed <em>before financing</em> = operating outflow <strong>+</strong> exploration/development outflow, <strong>excluding one-time investing inflows</strong> (option payments received, disposals). Taken from the most recent filing's cash-flow statement, annualized to monthly. This is why RDU and OGW aren't shown as near-zero burn — both had one-time investing <em>inflows</em> this period that would otherwise mask their real spend.</p>
+<p><strong>Runway = cash ÷ monthly burn. Cash-out date = filing date + runway.</strong></p>
+<p><strong>What to remember:</strong>
+- <strong>Exploration is discretionary.</strong> A company can slow drilling to stretch runway, so a short runway is a <em>prompt to check</em>, not a certainty. Heavy drillers (ANDC, CGNT) show high burn but can throttle.
+- <strong>"Cash-out elapsed"</strong> means the filing-date runway has already passed — a raise has likely happened (and the baked cash is stale) or the company is overdue. Refresh the filing.
+- <strong><code>EST</code> tag</strong> = the filing's cash-flow statement didn't parse cleanly and the burn is an estimate. Currently on <strong>RAK</strong> (annual filing) and <strong>CGNT</strong> (messy OCR) — verify and replace these two.
+- Burn is <strong>trailing</strong>, not forward. A company ramping drilling will burn faster than its last filing shows.</p>
+<p><strong>Current read:</strong> CRCL (elapsed) and OGW (~6 mo) are the near-term dilution risks; FEO and KFR just raised and are years out. The <code>BURN</code> block refreshes on the quarterly filings diff, same as SHARES/CASH.</p>
+<h2 id="11-timeline-lanes-catalyst-vs-risk-v2200">11. Timeline lanes — catalyst vs. risk (v2.20.0)</h2>
+<p><strong>The organizing rule:</strong> the two timelines answer two different investor questions.
+- <strong>Project timelines = catalyst-facing.</strong> "What could make this worth more?" Drilling, results, resource estimates, studies, permits-that-unlock.
+- <strong>Corporate timeline = risk-facing.</strong> "What could dilute or drain me?" Warrant expiries, financings, <strong>and every property/option payment obligation.</strong></p>
+<p><strong>So obligations MOVE, they do not copy.</strong> A payment obligation comes <em>off</em> its project timeline and <em>onto</em> Corporate, keeping the project name in the label (e.g. "Horetzky option: 2M shares + $200K due"). Project lanes stay pure catalyst; the risk lane holds every forced cash-out and dilution event in one place. The <strong>Summary tab's Cash Obligations Schedule</strong> (§ built v2.19.0) is the cross-ticker roll-up of the same records.</p>
+<p><strong>The one judgment call:</strong> an event that is <em>both</em> a catalyst and an obligation — e.g. NLR's first NI 43-101 resource milestone, which is a value inflection that <em>also</em> triggers a share payment — <strong>stays on the project timeline</strong> as a catalyst. The dominant meaning wins. Its dilution shows up in the balance-sheet/warrant work, not as a risk-lane marker.</p>
+<h3 id="111-filing-update-review-rules-required-every-diff">11.1 Filing-update review rules — REQUIRED every diff</h3>
+<p>Obligation schedules are the area that silently drifts (dates slip, elections resolve, tranches get paid). On <strong>every</strong> filing diff (§6, Request 3), re-parse the commitments note and update the Corporate lane:</p>
+<table>
+<thead>
+<tr>
+<th>Item type</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dated tranche</strong> ("on or before Oct 15 2027")</td>
+<td>Plot at that date. If paid since last filing → mark done / remove.</td>
+</tr>
+<tr>
+<td><strong>Conditional</strong> ("earlier of 5,000m drilled <em>or</em> Oct 15 2028")</td>
+<td>Plot at the <strong>backstop date</strong>; note the trigger. If the trigger fired early, re-date to actual.</td>
+</tr>
+<tr>
+<td><strong>"OR" amount</strong> ("$300K <em>or</em> 4M shares")</td>
+<td>Show <strong>both</strong> — the election (cash-drain vs. dilution) is itself the risk. Once elected in a filing, collapse to what was actually paid.</td>
+</tr>
+<tr>
+<td><strong>Recurring</strong> (e.g. FEO 2% NSR advance royalty, $100K/yr until production)</td>
+<td>Plot the <strong>next 1–2 only</strong>, labelled "annual until production" — never infinite markers that bury the lane. Advance the window each filing.</td>
+</tr>
+<tr>
+<td><strong>Sentiment (Tier 2)</strong></td>
+<td>Re-set each obligation’s bull/bear/neutral read against current terms + price + treasury. A tag from a prior filing may have flipped.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this can't be automatic:</strong> the same reason as everything else — Claude has no SEDAR access, and a stale obligation lane looks completely current. The commitments note must be re-read from each uploaded filing and the lane hand-updated. This is now a checklist line in the Request-3 diff so it isn't forgotten.</p>
+<p><em>Update this document whenever a workflow changes. A manual that is out of date is worse than none — it makes wrong behaviour look sanctioned.</em></p>
+</div>
+<button id="totop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+<script>
+// Intercept in-page anchor clicks and scroll directly. Without this, the
+// sandboxed iframe resolves "#slug" against its full URL and the host shows
+// an "Open Link" dialog instead of scrolling.
+document.addEventListener('click',function(e){
+  var t=e.target.closest('.toc-link');
+  if(!t)return;
+  e.preventDefault();
+  var id=t.getAttribute('data-target');
+  var el=id?document.getElementById(id):null;
+  if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); }
+  else{ window.scrollTo({top:0,behavior:'smooth'}); }
+});
+var b=document.getElementById('totop');
+window.addEventListener('scroll',function(){ if(window.scrollY>400)b.classList.add('show');else b.classList.remove('show'); });
+</script>
+</body></html>
